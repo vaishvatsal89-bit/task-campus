@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskCampus — Get things done on campus</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ══ NAVBAR ══ -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">
+      <div class="bolt">⚡</div>
+      TaskCampus
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Browse</a>
+      <a href="post.html">Post task</a>
+      <a href="mytasks.html">My tasks</a>
+    </div>
+    <div class="nav-right">
+      <!-- Shown when NOT logged in -->
+      <a href="login.html" id="nav-login-btn" class="btn btn-sm btn-primary">Login</a>
+      <!-- Shown when logged in -->
+      <div id="nav-user-area" style="display:none; align-items:center; gap:10px;">
+        <span style="font-size:13px; color:var(--text2)">Hey, <strong id="nav-user-name" style="color:var(--text)"></strong></span>
+        <button class="btn btn-sm btn-secondary" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ HERO ══ -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Campus-only · Verified students
+    </div>
+    <h1>Get things done.<br><span class="highlight">Earn on campus.</span></h1>
+    <p class="hero-sub">
+      Post a task, someone nearby completes it. Earn money between classes doing quick tasks for fellow students.
+    </p>
+    <div class="hero-btns">
+      <a href="post.html" class="btn btn-lg btn-primary">Post a task</a>
+      <a href="#feed" class="btn btn-lg btn-outline">Browse tasks</a>
+    </div>
+  </section>
+
+  <!-- ══ STATS STRIP ══ -->
+  <div class="stats-strip">
+    <div class="stat">
+      <div class="stat-n" id="stat-open" style="color:var(--green)">—</div>
+      <div class="stat-l">Open tasks</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n" style="color:var(--amber)">₹150</div>
+      <div class="stat-l">Avg payout</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n" style="color:var(--purple2)">20 min</div>
+      <div class="stat-l">Avg completion</div>
+    </div>
+  </div>
+
+  <!-- ══ HOW IT WORKS ══ -->
+  <section class="how-section">
+    <div class="how-inner">
+      <h2 class="how-title">How TaskCampus works</h2>
+      <p class="how-sub">Simple, fast, and safe — just for your campus.</p>
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="step-num">01</div>
+          <div class="step-title">Post a task</div>
+          <div class="step-desc">Describe what you need, set the amount you'll pay, and add a deadline. It goes live instantly.</div>
+        </div>
+        <div class="how-step">
+          <div class="step-num">02</div>
+          <div class="step-title">Someone accepts</div>
+          <div class="step-desc">The first campus student to accept gets the job. Your task is locked to them — nobody else can grab it.</div>
+        </div>
+        <div class="how-step">
+          <div class="step-num">03</div>
+          <div class="step-title">Task gets done</div>
+          <div class="step-desc">The doer completes the task and marks it done. An OTP is sent to you to confirm delivery.</div>
+        </div>
+        <div class="how-step">
+          <div class="step-num">04</div>
+          <div class="step-title">Pay safely</div>
+          <div class="step-desc">After OTP verification, payment is released. The doer gets 80%, platform keeps 20%.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TASK FEED ══ -->
+  <section class="feed-section" id="feed">
+    <div class="feed-topbar">
+      <h2>Open tasks near you</h2>
+      <span class="task-count" id="task-count-label">Loading...</span>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="filter-row" id="filter-row">
+      <button class="filter-chip active" onclick="setFilter('All', this)">All</button>
+      <button class="filter-chip" onclick="setFilter('Delivery', this)">🛵 Delivery</button>
+      <button class="filter-chip" onclick="setFilter('Study help', this)">📚 Study help</button>
+      <button class="filter-chip" onclick="setFilter('Errand', this)">🏃 Errand</button>
+      <button class="filter-chip" onclick="setFilter('Tech help', this)">💻 Tech help</button>
+      <button class="filter-chip" onclick="setFilter('Print job', this)">🖨️ Print job</button>
+    </div>
+
+    <!-- Task grid -->
+    <div id="task-grid"></div>
+  </section>
+
+  <script src="app.js"></script>
+  <script>
+    let currentFilter = 'All';
+
+    /* ── RENDER FEED ── */
+    function renderFeed() {
+      const tasks = getTasks().filter(t => t.status === 'open');
+      const filtered = currentFilter === 'All'
+        ? tasks
+        : tasks.filter(t => t.category === currentFilter);
+
+      // Update stats
+      document.getElementById('stat-open').textContent = tasks.length;
+      document.getElementById('task-count-label').textContent =
+        filtered.length + ' task' + (filtered.length !== 1 ? 's' : '');
+
+      const grid = document.getElementById('task-grid');
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-icon">📭</div>
+            <div class="empty-title">No ${currentFilter === 'All' ? '' : currentFilter + ' '}tasks right now</div>
+            <div class="empty-sub">Check back soon — or be the first to post one!</div>
+            <a href="post.html" class="btn btn-md btn-primary" style="margin-top:12px">Post a task</a>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(t => buildTaskCard(t)).join('');
+    }
+
+    /* ── FILTER ── */
+    function setFilter(val, el) {
+      currentFilter = val;
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      renderFeed();
+    }
+
+    /* ── LOGOUT ── */
+    function logout() {
+      localStorage.removeItem('tc_user');
+      updateNavAuth();
+      showToast('Logged out', 'info');
+    }
+
+    /* ── INIT ── */
+    renderFeed();
+  </script>
+</body>
+</html>

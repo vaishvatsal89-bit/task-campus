@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — TaskCampus</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+
+    .auth-wrap {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px;
+      background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(139,124,248,.1) 0%, transparent 65%);
+    }
+    .auth-box {
+      width: 100%; max-width: 420px;
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--r3); padding: 36px 32px;
+    }
+    .auth-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 20px; font-weight: 700; margin-bottom: 8px;
+    }
+    .auth-logo .bolt {
+      width: 38px; height: 38px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--purple), var(--purple-d));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .auth-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; }
+
+    /* ── TABS ── */
+    .auth-tabs {
+      display: flex; gap: 4px;
+      background: var(--bg3); border-radius: var(--r);
+      padding: 4px; margin-bottom: 24px;
+    }
+    .auth-tab {
+      flex: 1; padding: 8px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; text-align: center;
+      cursor: pointer; transition: all .15s;
+      color: var(--text2); background: transparent; border: none;
+      font-family: var(--font);
+    }
+    .auth-tab.active {
+      background: var(--bg2); color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,.3);
+    }
+
+    .auth-form { display: flex; flex-direction: column; gap: 16px; }
+
+    .form-note {
+      font-size: 12px; color: var(--text3); line-height: 1.6;
+      text-align: center; margin-top: 8px;
+    }
+    .form-note a { color: var(--purple2); }
+
+    .or-row {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 12px; color: var(--text3);
+    }
+    .or-row::before, .or-row::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    .info-box {
+      background: var(--purple-bg); border: 1px solid var(--purple-br);
+      border-radius: var(--r); padding: 12px 14px;
+      font-size: 12px; color: var(--purple2); line-height: 1.6;
+      display: flex; gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">
+      <div class="bolt">⚡</div>
+      TaskCampus
+    </a>
+    <div class="nav-right">
+      <a href="index.html" class="btn btn-sm btn-secondary">← Back to home</a>
+    </div>
+  </nav>
+
+  <div class="auth-wrap">
+    <div class="auth-box">
+      <div class="auth-logo"><div class="bolt">⚡</div> TaskCampus</div>
+      <div class="auth-sub">Campus-only task marketplace. Verified students only.</div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Login</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Sign up</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="form-login">
+        <div class="auth-form">
+          <div class="form-group">
+            <label class="form-label">University email</label>
+            <input class="inp" type="email" id="login-email"
+              placeholder="yourname@university.edu" autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input class="inp" type="password" id="login-pass"
+              placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <button class="btn btn-md btn-primary btn-full" onclick="doLogin()" id="login-btn">
+            Login
+          </button>
+          <div class="form-note">
+            Don't have an account?
+            <a href="#" onclick="switchTab('signup')">Sign up here</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIGNUP FORM -->
+      <div id="form-signup" style="display:none">
+        <div class="auth-form">
+          <div class="info-box">
+            🎓 Only university email addresses are accepted.
+            Your account is tied to your campus identity.
+          </div>
+          <div class="form-group">
+            <label class="form-label">Full name</label>
+            <input class="inp" type="text" id="signup-name"
+              placeholder="Arjun Singh" autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">University email</label>
+            <input class="inp" type="email" id="signup-email"
+              placeholder="yourname@university.edu" autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label class="form-label">UPI ID (for payouts)</label>
+            <input class="inp" type="text" id="signup-upi"
+              placeholder="yourname@upi">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input class="inp" type="password" id="signup-pass"
+              placeholder="Minimum 8 characters" autocomplete="new-password">
+          </div>
+          <button class="btn btn-md btn-primary btn-full" onclick="doSignup()" id="signup-btn">
+            Create account
+          </button>
+          <div class="form-note">
+            Already have an account?
+            <a href="#" onclick="switchTab('login')">Login here</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    /* ── If already logged in, redirect home ── */
+    if (getUser()) {
+      window.location.href = 'index.html';
+    }
+
+    /* ── SWITCH TABS ── */
+    function switchTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('tab-login').classList.toggle('active', isLogin);
+      document.getElementById('tab-signup').classList.toggle('active', !isLogin);
+      document.getElementById('form-login').style.display  = isLogin ? '' : 'none';
+      document.getElementById('form-signup').style.display = isLogin ? 'none' : '';
+    }
+
+    /* ── VALIDATION HELPERS ── */
+    function highlightError(el) {
+      el.style.borderColor = 'var(--red)';
+      el.focus();
+      setTimeout(() => el.style.borderColor = '', 1500);
+    }
+
+    /* ── LOGIN ── */
+    function doLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass  = document.getElementById('login-pass').value;
+
+      if (!email || !email.includes('@')) {
+        highlightError(document.getElementById('login-email'));
+        showToast('Enter a valid email', 'error');
+        return;
+      }
+      if (!pass || pass.length < 6) {
+        highlightError(document.getElementById('login-pass'));
+        showToast('Enter your password', 'error');
+        return;
+      }
+
+      // Phase 1 — no real auth, just extract name from email
+      const namePart = email.split('@')[0];
+      const name = namePart
+        .split(/[._]/)
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+
+      saveUser(name);
+
+      // Save UPI placeholder
+      localStorage.setItem('tc_upi', email.split('@')[0] + '@upi');
+
+      showToast('Welcome back, ' + name.split(' ')[0] + '!', 'success');
+      setTimeout(() => window.location.href = 'index.html', 900);
+    }
+
+    /* ── SIGNUP ── */
+    function doSignup() {
+      const name  = document.getElementById('signup-name').value.trim();
+      const email = document.getElementById('signup-email').value.trim();
+      const upi   = document.getElementById('signup-upi').value.trim();
+      const pass  = document.getElementById('signup-pass').value;
+
+      if (!name) {
+        highlightError(document.getElementById('signup-name'));
+        showToast('Enter your name', 'error'); return;
+      }
+      if (!email || !email.includes('@')) {
+        highlightError(document.getElementById('signup-email'));
+        showToast('Enter a valid university email', 'error'); return;
+      }
+      if (!upi) {
+        highlightError(document.getElementById('signup-upi'));
+        showToast('UPI ID is needed for payouts', 'error'); return;
+      }
+      if (!pass || pass.length < 8) {
+        highlightError(document.getElementById('signup-pass'));
+        showToast('Password must be at least 8 characters', 'error'); return;
+      }
+
+      // Phase 1 — just save the name and UPI
+      saveUser(name);
+      localStorage.setItem('tc_upi', upi);
+
+      showToast('Account created! Welcome ' + name.split(' ')[0] + '!', 'success');
+      setTimeout(() => window.location.href = 'index.html', 900);
+    }
+
+    /* ── Allow Enter key to submit ── */
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const loginVisible = document.getElementById('form-login').style.display !== 'none';
+      if (loginVisible) doLogin();
+      else doSignup();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Detail — TaskCampus</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .detail-layout {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .detail-main {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--r3); padding: 28px;
+    }
+
+    .detail-top {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; gap: 12px; margin-bottom: 12px;
+    }
+    .detail-title {
+      font-size: 22px; font-weight: 700; line-height: 1.3; flex: 1;
+    }
+    .detail-amount {
+      font-size: 26px; font-weight: 700; font-family: var(--mono);
+      color: var(--green); white-space: nowrap;
+    }
+    .detail-desc {
+      font-size: 15px; color: var(--text2); line-height: 1.7;
+      margin: 16px 0;
+    }
+
+    /* ── META GRID ── */
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px; margin: 20px 0;
+    }
+    .meta-box {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 14px;
+    }
+    .meta-box-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text3); }
+    .meta-box-val   { font-size: 15px; font-weight: 600; margin-top: 5px; }
+
+    /* ── POSTER CARD ── */
+    .poster-card {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--r2); padding: 16px; margin: 20px 0;
+    }
+    .poster-info .poster-name   { font-size: 15px; font-weight: 600; }
+    .poster-info .poster-rating { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+    /* ── SIDEBAR ── */
+    .detail-sidebar {
+      position: sticky; top: 80px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+
+    .action-card {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--r2); padding: 22px;
+    }
+    .action-earn {
+      text-align: center; margin-bottom: 18px;
+    }
+    .action-earn-label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; }
+    .action-earn-val   { font-size: 34px; font-weight: 700; font-family: var(--mono); color: var(--green); margin-top: 4px; }
+    .action-earn-sub   { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+    .trust-box {
+      background: var(--green-bg); border: 1px solid var(--green-br);
+      border-radius: var(--r); padding: 12px 14px;
+      font-size: 12px; color: var(--text2); line-height: 1.6;
+    }
+    .trust-box strong { color: var(--green); }
+
+    /* ── OTP SECTION (shown after task completed) ── */
+    .otp-section {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--r2); padding: 20px; display: none;
+    }
+    .otp-boxes {
+      display: flex; gap: 10px; justify-content: center; margin: 14px 0;
+    }
+    .otp-box {
+      width: 52px; height: 58px; border-radius: 12px;
+      background: var(--bg3); border: 1.5px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 700; font-family: var(--mono);
+      color: var(--purple2); transition: border-color .15s;
+    }
+    .otp-box.filled { border-color: var(--purple); background: var(--purple-bg); }
+
+    .numpad {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px;
+    }
+    .num-key {
+      height: 48px; border-radius: 10px;
+      background: var(--bg3); border: 1px solid var(--border2);
+      font-size: 18px; font-weight: 600; color: var(--text);
+      cursor: pointer; transition: all .12s; font-family: var(--font);
+    }
+    .num-key:hover  { background: var(--bg4); }
+    .num-key:active { transform: scale(0.94); }
+    .num-key.empty  { background: transparent; border: none; cursor: default; }
+    .num-key.del    { font-size: 16px; color: var(--text2); }
+
+    /* ── STATUS STATES ── */
+    .status-open     { color: var(--green); }
+    .status-accepted { color: var(--purple2); }
+    .status-done     { color: var(--blue); }
+
+    @media (max-width: 768px) {
+      .detail-layout   { grid-template-columns: 1fr; }
+      .detail-sidebar  { position: static; }
+      .meta-grid       { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">
+      <div class="bolt">⚡</div>
+      TaskCampus
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Browse</a>
+      <a href="post.html">Post task</a>
+      <a href="mytasks.html">My tasks</a>
+    </div>
+    <div class="nav-right">
+      <a href="login.html" id="nav-login-btn" class="btn btn-sm btn-primary">Login</a>
+      <div id="nav-user-area" style="display:none; align-items:center; gap:10px;">
+        <span style="font-size:13px; color:var(--text2)">Hey, <strong id="nav-user-name" style="color:var(--text)"></strong></span>
+        <button class="btn btn-sm btn-secondary" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <a href="index.html" style="font-size:13px; color:var(--text3); display:inline-flex; align-items:center; gap:6px; margin-bottom:20px;">
+      ← Back to tasks
+    </a>
+
+    <!-- Main content injected by JS -->
+    <div id="page-content">
+      <div class="flex-center" style="height:200px; color:var(--text3);">Loading task...</div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    /* ── READ ID FROM URL ── */
+    const params = new URLSearchParams(window.location.search);
+    const taskId = params.get('id');
+    let currentTask = null;
+    let otpInput = '';
+
+    /* ── LOAD TASK ── */
+    function loadTask() {
+      if (!taskId) {
+        document.getElementById('page-content').innerHTML =
+          `<div class="empty-state"><div class="empty-icon">❌</div>
+           <div class="empty-title">Task not found</div>
+           <a href="index.html" class="btn btn-md btn-primary">Back to home</a></div>`;
+        return;
+      }
+
+      const tasks = getTasks();
+      currentTask = tasks.find(t => t.id === taskId);
+
+      if (!currentTask) {
+        document.getElementById('page-content').innerHTML =
+          `<div class="empty-state"><div class="empty-icon">❌</div>
+           <div class="empty-title">Task not found</div>
+           <a href="index.html" class="btn btn-md btn-primary">Back to home</a></div>`;
+        return;
+      }
+
+      renderTask();
+    }
+
+    /* ── RENDER TASK DETAIL ── */
+    function renderTask() {
+      const t = currentTask;
+      const user = getUser();
+      const earn = Math.round(t.amount * 0.8);
+      const isMyPost = user && t.poster === user;
+      const isMyTask = user && t.doer === user;
+
+      const statusMap = {
+        open:      { label: 'Open', class: 'badge-open' },
+        accepted:  { label: 'In progress', class: 'badge-active' },
+        completed: { label: 'Completed', class: 'badge-done' },
+      };
+      const statusBadge = statusMap[t.status] || statusMap.open;
+
+      document.title = t.title + ' — TaskCampus';
+
+      document.getElementById('page-content').innerHTML = `
+        <div class="detail-layout">
+
+          <!-- MAIN -->
+          <div class="detail-main">
+            <div class="detail-top">
+              <span class="badge ${statusBadge.class}">${statusBadge.label}</span>
+              <div class="detail-amount">₹${t.amount}</div>
+            </div>
+
+            <div class="detail-title">${t.title}</div>
+            <div class="detail-desc">${t.desc}</div>
+
+            <!-- Meta grid -->
+            <div class="meta-grid">
+              <div class="meta-box">
+                <div class="meta-box-label">Category</div>
+                <div class="meta-box-val">${t.category}</div>
+              </div>
+              <div class="meta-box">
+                <div class="meta-box-label">Deadline</div>
+                <div class="meta-box-val">${t.deadline}</div>
+              </div>
+              <div class="meta-box">
+                <div class="meta-box-label">Posted</div>
+                <div class="meta-box-val" style="font-size:13px">${timeAgo(t.postedAt)}</div>
+              </div>
+            </div>
+
+            <!-- Poster -->
+            <div class="section-label">Posted by</div>
+            <div class="poster-card">
+              <div class="avatar av-md av-purple">${t.posterInitials}</div>
+              <div class="poster-info">
+                <div class="poster-name">${t.poster}</div>
+                <div class="poster-rating">⭐ ${t.posterRating} · Verified student</div>
+              </div>
+              <div style="margin-left:auto; font-size:12px; color:var(--text3)">Verified ✓</div>
+            </div>
+
+            <!-- OTP Section (visible to doer when status is accepted) -->
+            ${isMyTask && t.status === 'accepted' ? `
+            <div class="otp-section" id="otp-section" style="display:block">
+              <div class="section-label">Enter OTP from poster</div>
+              <p style="font-size:13px; color:var(--text2); margin-bottom:4px">
+                When you've completed the task, ask <strong>${t.poster}</strong> for their OTP and enter it below.
+              </p>
+              <p style="font-size:12px; color:var(--text3)">Demo: OTP is <strong style="color:var(--purple2); font-family:var(--mono)">7 4 2 1</strong></p>
+              <div class="otp-boxes" id="otp-display">
+                <div class="otp-box" id="ob0"></div>
+                <div class="otp-box" id="ob1"></div>
+                <div class="otp-box" id="ob2"></div>
+                <div class="otp-box" id="ob3"></div>
+              </div>
+              <div class="numpad">
+                <button class="num-key" onclick="otpKey('1')">1</button>
+                <button class="num-key" onclick="otpKey('2')">2</button>
+                <button class="num-key" onclick="otpKey('3')">3</button>
+                <button class="num-key" onclick="otpKey('4')">4</button>
+                <button class="num-key" onclick="otpKey('5')">5</button>
+                <button class="num-key" onclick="otpKey('6')">6</button>
+                <button class="num-key" onclick="otpKey('7')">7</button>
+                <button class="num-key" onclick="otpKey('8')">8</button>
+                <button class="num-key" onclick="otpKey('9')">9</button>
+                <button class="num-key empty"></button>
+                <button class="num-key" onclick="otpKey('0')">0</button>
+                <button class="num-key del" onclick="otpDel()">⌫</button>
+              </div>
+            </div>` : ''}
+
+          </div>
+
+          <!-- SIDEBAR -->
+          <div class="detail-sidebar">
+
+            <div class="action-card">
+              <div class="action-earn">
+                <div class="action-earn-label">You earn</div>
+                <div class="action-earn-val">₹${earn}</div>
+                <div class="action-earn-sub">₹${t.amount} task · 20% platform fee</div>
+              </div>
+
+              ${renderActionButton(t, user, isMyPost, isMyTask, earn)}
+
+            </div>
+
+            <div class="trust-box">
+              🔒 <strong>Safe payment.</strong> Money is held in escrow after acceptance. Released only after OTP verification. Your earnings are protected.
+            </div>
+
+            <div class="action-card" style="padding:16px">
+              <div class="section-label" style="margin-bottom:8px">Quick facts</div>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text2)">
+                <div>📍 ${t.category} task</div>
+                <div>⏱ Deadline: ${t.deadline}</div>
+                <div>💰 Platform keeps 20% (₹${t.amount - earn})</div>
+              </div>
+            </div>
+
+          </div>
+        </div>`;
+    }
+
+    /* ── RENDER ACTION BUTTON based on task state ── */
+    function renderActionButton(t, user, isMyPost, isMyTask, earn) {
+      if (!user) {
+        return `<a href="login.html" class="btn btn-lg btn-primary btn-full">Login to accept</a>`;
+      }
+      if (isMyPost) {
+        return `<div style="text-align:center; font-size:13px; color:var(--text2); padding:8px">
+          This is your posted task.
+          ${t.status === 'open' ? `<br><button class="btn btn-sm btn-secondary" onclick="cancelTask()" style="margin-top:10px;width:100%">Cancel task</button>` : ''}
+        </div>`;
+      }
+      if (t.status === 'open') {
+        return `<button class="btn btn-lg btn-green btn-full" onclick="acceptTask()" id="accept-btn">
+          ⚡ Accept task · Earn ₹${earn}
+        </button>`;
+      }
+      if (t.status === 'accepted' && isMyTask) {
+        return `<div style="text-align:center; font-size:13px; color:var(--purple2); font-weight:600">
+          ✓ You accepted this task<br>
+          <span style="font-size:12px; color:var(--text3); font-weight:400">Enter the OTP above once done</span>
+        </div>`;
+      }
+      if (t.status === 'accepted') {
+        return `<div style="text-align:center; font-size:13px; color:var(--text3); padding:8px">
+          This task has already been accepted by someone else.
+        </div>`;
+      }
+      if (t.status === 'completed') {
+        return `<div style="text-align:center; font-size:13px; color:var(--green); font-weight:600; padding:8px">
+          ✓ Task completed
+        </div>`;
+      }
+      return '';
+    }
+
+    /* ── ACCEPT TASK ── */
+    function acceptTask() {
+      const user = getUser();
+      if (!user) { window.location.href = 'login.html'; return; }
+      if (currentTask.poster === user) {
+        showToast("You can't accept your own task!", 'error'); return;
+      }
+
+      const btn = document.getElementById('accept-btn');
+      if (btn) { btn.textContent = 'Accepting...'; btn.disabled = true; }
+
+      setTimeout(() => {
+        // Update task in localStorage
+        const tasks = getTasks();
+        const idx = tasks.findIndex(t => t.id === taskId);
+        if (idx !== -1) {
+          tasks[idx].status = 'accepted';
+          tasks[idx].doer   = user;
+          saveTasks(tasks);
+          currentTask = tasks[idx];
+        }
+        showToast('Task accepted! Go complete it.', 'success');
+        setTimeout(() => {
+          renderTask();
+          updateNavAuth();
+        }, 700);
+      }, 500);
+    }
+
+    /* ── CANCEL TASK ── */
+    function cancelTask() {
+      const tasks = getTasks();
+      const idx = tasks.findIndex(t => t.id === taskId);
+      if (idx !== -1) {
+        tasks.splice(idx, 1); // remove task
+        saveTasks(tasks);
+      }
+      showToast('Task cancelled', 'info');
+      setTimeout(() => window.location.href = 'index.html', 800);
+    }
+
+    /* ── OTP ── */
+    function otpKey(digit) {
+      if (otpInput.length >= 4) return;
+      otpInput += digit;
+      renderOtp();
+      if (otpInput.length === 4) {
+        setTimeout(() => {
+          if (otpInput === '7421') {
+            completeTask();
+          } else {
+            // Wrong OTP — shake and clear
+            document.querySelectorAll('.otp-box').forEach(b => {
+              b.style.borderColor = 'var(--red)';
+              b.style.background  = 'var(--red-bg)';
+              b.style.color       = 'var(--red)';
+            });
+            showToast('Wrong OTP. Try again.', 'error');
+            setTimeout(() => { otpInput = ''; renderOtp(); }, 800);
+          }
+        }, 200);
+      }
+    }
+
+    function otpDel() {
+      otpInput = otpInput.slice(0, -1);
+      renderOtp();
+    }
+
+    function renderOtp() {
+      for (let i = 0; i < 4; i++) {
+        const box = document.getElementById('ob' + i);
+        if (!box) continue;
+        box.textContent = otpInput[i] || '';
+        box.classList.toggle('filled', !!otpInput[i]);
+        box.style.borderColor = '';
+        box.style.background  = '';
+        box.style.color       = '';
+      }
+    }
+
+    /* ── COMPLETE TASK ── */
+    function completeTask() {
+      const tasks = getTasks();
+      const idx = tasks.findIndex(t => t.id === taskId);
+      if (idx !== -1) {
+        tasks[idx].status = 'completed';
+        saveTasks(tasks);
+        currentTask = tasks[idx];
+      }
+
+      const earn = Math.round(currentTask.amount * 0.8);
+      showToast('OTP verified! ₹' + earn + ' credited to your wallet 🎉', 'success', 4000);
+
+      // Update rating in localStorage (mock)
+      setTimeout(() => {
+        renderTask();
+        // Show rating prompt after 2 sec
+        setTimeout(showRatingPrompt, 2000);
+      }, 800);
+    }
+
+    /* ── RATING PROMPT ── */
+    function showRatingPrompt() {
+      const earn = Math.round(currentTask.amount * 0.8);
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(4px)';
+      modal.innerHTML = `
+        <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r3);padding:32px;width:90%;max-width:380px;text-align:center">
+          <div style="font-size:40px;margin-bottom:12px">🎉</div>
+          <div style="font-size:20px;font-weight:700;margin-bottom:6px">Task completed!</div>
+          <div style="font-size:14px;color:var(--text2);margin-bottom:20px">₹${earn} has been credited to your wallet.</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:12px">Rate ${currentTask.poster}</div>
+          <div style="display:flex;gap:10px;justify-content:center;font-size:28px;margin-bottom:20px" id="stars">
+            ${[1,2,3,4,5].map(n => `<span style="cursor:pointer;color:var(--bg4);transition:color .1s" onclick="pickStar(${n})" id="star${n}">★</span>`).join('')}
+          </div>
+          <button class="btn btn-md btn-primary btn-full" onclick="this.closest('div[style]').remove();window.location.href='mytasks.html'">
+            Done → Go to my tasks
+          </button>
+        </div>`;
+      document.body.appendChild(modal);
+    }
+
+    function pickStar(n) {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById('star' + i).style.color = i <= n ? 'var(--amber)' : 'var(--bg4)';
+      }
+    }
+
+    /* ── LOGOUT ── */
+    function logout() {
+      localStorage.removeItem('tc_user');
+      window.location.href = 'login.html';
+    }
+
+    /* ── INIT ── */
+    loadTask();
+  </script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post a Task — TaskCampus</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .post-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .form-card {
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--r3); padding: 28px;
+    }
+    .form-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+    .form-card p  { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+
+    .form-body { display: flex; flex-direction: column; gap: 18px; }
+
+    /* ── PRICE CALCULATOR ── */
+    .price-calc {
+      position: sticky; top: 80px;
+      background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--r3); padding: 24px; overflow: hidden;
+    }
+    .price-calc::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139,124,248,.08), transparent 60%);
+      pointer-events: none;
+    }
+    .price-calc h3 { font-size: 15px; font-weight: 600; margin-bottom: 20px; }
+    .calc-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 14px; padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .calc-row:last-of-type { border-bottom: none; }
+    .calc-label { color: var(--text2); }
+    .calc-val { font-family: var(--mono); font-weight: 600; }
+    .calc-total {
+      margin-top: 12px; padding-top: 12px;
+      border-top: 1px solid var(--border2);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .calc-total-label { font-size: 14px; font-weight: 600; }
+    .calc-total-val { font-size: 22px; font-weight: 700; font-family: var(--mono); color: var(--green); }
+
+    .calc-note {
+      margin-top: 14px; padding: 12px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: var(--r); font-size: 12px; color: var(--text3);
+      line-height: 1.6;
+    }
+
+    /* ── TIPS ── */
+    .tips-card {
+      margin-top: 16px;
+      background: var(--purple-bg); border: 1px solid var(--purple-br);
+      border-radius: var(--r2); padding: 16px;
+    }
+    .tips-card h4 { font-size: 12px; font-weight: 600; color: var(--purple2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+    .tips-list { display: flex; flex-direction: column; gap: 8px; }
+    .tip-item { font-size: 12px; color: var(--text2); line-height: 1.5; display: flex; gap: 6px; }
+    .tip-item::before { content: '→'; color: var(--purple); flex-shrink: 0; }
+
+    @media (max-width: 768px) {
+      .post-layout { grid-template-columns: 1fr; }
+      .price-calc { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">
+      <div class="bolt">⚡</div>
+      TaskCampus
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Browse</a>
+      <a href="post.html">Post task</a>
+      <a href="mytasks.html">My tasks</a>
+    </div>
+    <div class="nav-right">
+      <a href="login.html" id="nav-login-btn" class="btn btn-sm btn-primary">Login</a>
+      <div id="nav-user-area" style="display:none; align-items:center; gap:10px;">
+        <span style="font-size:13px; color:var(--text2)">Hey, <strong id="nav-user-name" style="color:var(--text)"></strong></span>
+        <button class="btn btn-sm btn-secondary" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <!-- Page header -->
+    <div style="margin-bottom: 32px;">
+      <a href="index.html" style="font-size:13px; color:var(--text3); display:inline-flex; align-items:center; gap:6px; margin-bottom:16px;">
+        ← Back to browse
+      </a>
+      <h1 style="font-size:28px; font-weight:700; margin-bottom:6px;">Post a task</h1>
+      <p style="font-size:15px; color:var(--text2);">Be specific. The more detail you add, the faster someone accepts.</p>
+    </div>
+
+    <div class="post-layout">
+
+      <!-- ── FORM ── -->
+      <div class="form-card">
+        <div class="form-body">
+
+          <div class="form-group">
+            <label class="form-label">Task title *</label>
+            <input class="inp" type="text" id="f-title" maxlength="80"
+              placeholder="e.g. Deliver my notes to Block C Room 214">
+            <span style="font-size:11px; color:var(--text3); margin-top:4px;">Keep it short and clear.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description *</label>
+            <textarea class="inp" id="f-desc" rows="4"
+              placeholder="Be specific — exact location, what needs to happen, any special instructions..."></textarea>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select class="inp" id="f-category">
+                <option>Delivery</option>
+                <option>Study help</option>
+                <option>Errand</option>
+                <option>Tech help</option>
+                <option>Print job</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Deadline</label>
+              <input class="inp" type="text" id="f-deadline"
+                placeholder="e.g. 30 min, 2 hrs">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Amount you'll pay (₹) *</label>
+            <input class="inp" type="number" id="f-amount"
+              placeholder="150" min="30" max="5000"
+              oninput="calcPreview()">
+            <span style="font-size:11px; color:var(--text3); margin-top:4px;">Minimum ₹30. Be fair — better pay = faster acceptance.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Location / pickup point</label>
+            <input class="inp" type="text" id="f-location"
+              placeholder="e.g. Block A Room 101, Library 2nd floor...">
+          </div>
+
+          <button class="btn btn-lg btn-primary btn-full" id="post-btn" onclick="submitPost()">
+            Post task →
+          </button>
+
+        </div>
+      </div>
+
+      <!-- ── SIDEBAR ── -->
+      <div>
+        <!-- Price calculator -->
+        <div class="price-calc">
+          <h3>Price breakdown</h3>
+          <div class="calc-row">
+            <span class="calc-label">You pay</span>
+            <span class="calc-val" id="c-pay" style="color:var(--text)">₹—</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">Platform fee (20%)</span>
+            <span class="calc-val" id="c-fee" style="color:var(--red)">—</span>
+          </div>
+          <div class="calc-total">
+            <span class="calc-total-label">Doer earns</span>
+            <span class="calc-total-val" id="c-earn">₹—</span>
+          </div>
+          <div class="calc-note">
+            💡 A fair amount means your task gets accepted faster. Most tasks in the ₹100–300 range are picked up within 5 minutes.
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="tips-card">
+          <h4>Tips for a fast acceptance</h4>
+          <div class="tips-list">
+            <div class="tip-item">Be very specific about the location — room numbers, building names.</div>
+            <div class="tip-item">Set a realistic deadline. Tight deadlines with low pay rarely get accepted.</div>
+            <div class="tip-item">Mention any extra equipment or preparation needed.</div>
+            <div class="tip-item">Pay a little more than you think — it's still cheaper than doing it yourself.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+
+    /* ── PRICE CALCULATOR ── */
+    function calcPreview() {
+      const amt = parseInt(document.getElementById('f-amount').value) || 0;
+      const fee  = Math.round(amt * 0.2);
+      const earn = amt - fee;
+
+      document.getElementById('c-pay').textContent  = amt ? '₹' + amt  : '₹—';
+      document.getElementById('c-fee').textContent  = amt ? '-₹' + fee : '—';
+      document.getElementById('c-earn').textContent = amt ? '₹' + earn : '₹—';
+    }
+
+    /* ── SUBMIT ── */
+    function submitPost() {
+      // Check login first
+      if (!requireLogin()) return;
+
+      const title    = document.getElementById('f-title').value.trim();
+      const desc     = document.getElementById('f-desc').value.trim();
+      const category = document.getElementById('f-category').value;
+      const deadline = document.getElementById('f-deadline').value.trim() || '1 hr';
+      const amount   = parseInt(document.getElementById('f-amount').value);
+      const location = document.getElementById('f-location').value.trim();
+
+      // Validate
+      if (!title) {
+        document.getElementById('f-title').style.borderColor = 'var(--red)';
+        showToast('Please add a task title', 'error'); return;
+      }
+      if (!desc) {
+        document.getElementById('f-desc').style.borderColor = 'var(--red)';
+        showToast('Please describe the task', 'error'); return;
+      }
+      if (!amount || amount < 30) {
+        document.getElementById('f-amount').style.borderColor = 'var(--red)';
+        showToast('Minimum amount is ₹30', 'error'); return;
+      }
+
+      // Build task object
+      const user = getUser();
+      const nameParts = user.split(' ');
+      const initial = nameParts.map(p => p[0]).join('').slice(0, 2).toUpperCase();
+
+      const task = {
+        id:             generateId(),
+        title:          title,
+        desc:           desc + (location ? ' | Location: ' + location : ''),
+        category:       category,
+        amount:         amount,
+        deadline:       deadline,
+        status:         'open',
+        poster:         user,
+        posterInitials: initial,
+        posterRating:   4.8,
+        doer:           null,
+        postedAt:       Date.now(),
+      };
+
+      // Save to localStorage
+      const tasks = getTasks();
+      tasks.unshift(task); // add to top
+      saveTasks(tasks);
+
+      // Feedback
+      const btn = document.getElementById('post-btn');
+      btn.textContent = 'Posting...';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        showToast('Task posted! Students are being notified.', 'success');
+        setTimeout(() => window.location.href = 'index.html', 900);
+      }, 600);
+    }
+
+    /* ── LOGOUT ── */
+    function logout() {
+      localStorage.removeItem('tc_user');
+      window.location.href = 'login.html';
+    }
+
+    /* ── INIT ── */
+    calcPreview();
+  </script>
+</body>
+</html>
