@@ -1,101 +1,16 @@
-# TaskCampus
+# React + Vite
 
-TaskCampus is a campus-based task marketplace designed to help university students post, accept, and complete small tasks within their campus ecosystem.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-The goal is to create a platform where students can save time, help each other, and earn rewards for completing tasks.
+Currently, two official plugins are available:
 
----
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## Problem Statement
+## React Compiler
 
-Students frequently face small inconveniences such as:
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-- Getting food or snacks delivered within hostel blocks
-- Grocery or stationery pickups
-- Printout requests
-- Small campus errands
-- Time constraints and convenience issues
+## Expanding the ESLint configuration
 
-TaskCampus aims to simplify these problems through a student-to-student task marketplace.
-
----
-
-## Vision
-
-Create a trusted campus ecosystem where students can:
-
-- Post tasks
-- Accept tasks
-- Earn rewards
-- Save time
-- Help other students
-
----
-
-## Planned Features
-
-### Authentication
-
-- User Signup/Login
-- University-based access
-
-### Task System
-
-- Create Tasks
-- Browse Tasks
-- Accept Tasks
-- Task Status Management
-
-### Trust & Safety
-
-- OTP Verification
-- Ratings & Reviews
-- Reporting System
-
-### Future Features
-
-- Notifications
-- Payment Integration
-- Reward System
-- Campus Expansion
-
----
-
-## Tech Stack
-
-### Frontend
-
-- HTML
-- CSS
-- JavaScript
-- React
-
-### Backend
-
-- Node.js
-- Express.js
-
-### Database
-
-- PostgreSQL
-- Prisma ORM
-
----
-
-## Project Status
-
-🚧 Currently in Development
-
-Current Focus:
-
-- Full Stack Foundations
-- React Development
-- Backend Development
-- Authentication System
-
----
-
-## Long Term Goal
-
-Build a real campus product that students actually use while learning full-stack development and solving real problems.
-
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
