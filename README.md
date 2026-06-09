@@ -1,16 +1,51 @@
-# React + Vite
+# TaskCampus
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Campus-only task marketplace for university students. Post errands, study help, deliveries, and more — fellow students accept tasks, complete them, and get paid.
 
-Currently, two official plugins are available:
+**Live demo:** [https://task-campus-three.vercel.app](https://task-campus-three.vercel.app)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- University email signup (`@galgotiasuniversity.ac.in` only)
+- Post and browse open tasks
+- Accept tasks (first accepter wins)
+- OTP verification when a task is completed
+- My Tasks — track tasks you posted and tasks you're doing
+- Realtime feed updates via Supabase
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech stack
 
-## Expanding the ESLint configuration
+- **Frontend:** React, Vite, React Router
+- **Backend / database:** Supabase (PostgreSQL, Auth, Realtime)
+- **Hosting:** Vercel
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Run locally
+
+```bash
+npm install
+```
+
+Create a `.env` file (see `.env.example`):
+
+```
+VITE_SUPABASE_URL=your-supabase-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_UNIVERSITY_DOMAIN=galgotiasuniversity.ac.in
+```
+
+Set up the database by running `supabase/setup.sql` in the Supabase SQL Editor.
+
+```bash
+npm run dev
+```
+
+## Project structure
+
+```
+src/
+  pages/       Home, Login, Post, MyTasks, TaskDetail
+  components/  Navbar, TaskCard
+  context/     AuthContext
+  api.js       Supabase API calls
+  supabase.js  Supabase client
+```
