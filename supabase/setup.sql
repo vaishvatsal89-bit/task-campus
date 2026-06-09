@@ -35,6 +35,13 @@ create table if not exists tasks (
 alter table profiles enable row level security;
 alter table tasks enable row level security;
 
+-- Required when "Automatically expose new tables" is OFF in Supabase settings
+grant usage on schema public to anon, authenticated;
+grant select on table public.profiles to anon, authenticated;
+grant insert, update on table public.profiles to authenticated;
+grant select on table public.tasks to anon, authenticated;
+grant insert, update, delete on table public.tasks to authenticated;
+
 create policy "profiles_select" on profiles
   for select using (true);
 

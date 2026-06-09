@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signIn, signUp } from '../api';
 
@@ -63,20 +63,7 @@ export default function Login({ showToast }) {
   }
 
   return (
-    <>
-      <nav className="navbar">
-        <div className="nav-logo">
-          <div className="bolt">⚡</div>
-          TaskCampus
-        </div>
-        <div className="nav-right">
-          <Link to="/" className="btn btn-sm btn-secondary">
-            ← Back To Home
-          </Link>
-        </div>
-      </nav>
-
-      <div className="auth-wrap">
+    <div className="auth-wrap">
         <div className="auth-box">
           <div className="auth-logo">
             <div className="bolt">⚡</div>
@@ -225,9 +212,6 @@ export default function Login({ showToast }) {
             </form>
           )}
         </div>
-      </div>
-    </>
+    </div>
   );
 }
-
-export default Login;
