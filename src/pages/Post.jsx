@@ -22,7 +22,8 @@ export default function Post({ showToast }) {
   const [title,    setTitle]    = useState('');
   const [desc,     setDesc]     = useState('');
   const [category, setCategory] = useState('Delivery');
-  const [deadline, setDeadline] = useState('');
+  const DEADLINES = ['30 min', '1 hour', '3 hours', 'Tomorrow'];
+  const [deadline, setDeadline] = useState('1 hour');
   const [amount,   setAmount]   = useState('');
   const [location, setLocation] = useState('');
   const [errors,   setErrors]   = useState({});
@@ -31,6 +32,20 @@ export default function Post({ showToast }) {
   const amtNum = parseInt(amount) || 0;
   const fee    = Math.round(amtNum * 0.2);
   const earn   = amtNum - fee;
+
+  function getExpiresAt(preset) {
+  const now = Date.now();
+  if (preset === '30 min')  return new Date(now + 30 * 60_000).toISOString();
+  if (preset === '1 hour')  return new Date(now + 60 * 60_000).toISOString();
+  if (preset === '3 hours') return new Date(now + 3 * 60 * 60_000).toISOString();
+  if (preset === 'Tomorrow') {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(23, 59, 0, 0);
+    return d.toISOString();
+  }
+  return null;
+}
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -65,7 +80,8 @@ export default function Post({ showToast }) {
         description:     desc.trim() + (location ? ` | Location: ${location}` : ''),
         category,
         amount:          amtNum,
-        deadline:        deadline || '1 hr',
+        deadline:   deadline,
+        expires_at: getExpiresAt(deadline),
         poster_id:       user.id,
         poster_name:     profile?.name || user.email,
         poster_initials: initials,
@@ -120,9 +136,30 @@ export default function Post({ showToast }) {
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Deadline</label>
-              <input className="inp" placeholder="e.g. 30 min" value={deadline} onChange={e => setDeadline(e.target.value)} />
-            </div>
+            <label className="form-label">Deadline</label>
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+            {DEADLINES.map(d => (
+              <button
+               key={d}
+              type="button"
+              onClick={() => setDeadline(d)}
+              style={{
+              padding: '8px 14px',
+              borderRadius: 8,
+              border:      deadline === d ? '1.5px solid var(--purple)' : '1px solid var(--border2)',
+              background:  deadline === d ? 'var(--purple-bg)' : 'var(--bg3)',
+              color:       deadline === d ? 'var(--purple)' : 'var(--text2)',
+              fontSize: 13,
+              cursor: 'pointer',
+              fontWeight: deadline === d ? 600 : 400,
+              transition: 'all 0.15s',
+             }}
+      >
+            {d}
+           </button>
+            ))}
+          </div>
+         </div>
           </div>
 
           <div className="form-group">

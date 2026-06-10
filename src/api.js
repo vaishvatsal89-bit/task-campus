@@ -61,10 +61,13 @@ export async function getProfile(userId) {
 /* ── TASKS ──────────────────────────────────────────────────────────────── */
 
 export async function fetchTasks(category = 'All') {
+  const now = new Date().toISOString();
+
   let query = supabase
     .from('tasks')
     .select('*')
     .eq('status', 'open')
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
     .order('created_at', { ascending: false });
 
   if (category && category !== 'All') {
