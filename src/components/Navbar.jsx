@@ -34,11 +34,12 @@ export default function Navbar({ showToast }) {
         <div className="bolt">⚡</div>
         TaskCampus
       </div>
-      <div className="nav-links">
+       <div className="nav-links">
         <NavLink to="/">Browse</NavLink>
         <NavLink to="/post">Post task</NavLink>
         <NavLink to="/mytasks">My tasks</NavLink>
-      </div>
+        <NavLink to="/dashboard">Wallet</NavLink>
+       </div>
       <div className="nav-right">
         {isLoggedIn ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Post from './pages/Post';
 import MyTasks from './pages/MyTasks';
 import TaskDetail from './pages/TaskDetail';
+import Dashboard from './pages/Dashboard';
 
 function Toast({ message, type, duration, onDone }) {
   const [visible, setVisible] = useState(false);
@@ -42,11 +43,12 @@ function AppContent() {
     <>
       <Navbar showToast={showToast} />
       <Routes>
-        <Route path="/" element={<Home showToast={showToast} />} />
-        <Route path="/login" element={<Login showToast={showToast} />} />
-        <Route path="/post" element={<Post showToast={showToast} />} />
-        <Route path="/mytasks" element={<MyTasks showToast={showToast} />} />
-        <Route path="/task/:id" element={<TaskDetail showToast={showToast} />} />
+          <Route path="/" element={<Home showToast={showToast} />} />
+          <Route path="/login" element={<Login showToast={showToast} />} />
+          <Route path="/post" element={<Post showToast={showToast} />} />
+          <Route path="/mytasks" element={<MyTasks showToast={showToast} />} />
+          <Route path="/task/:id" element={<TaskDetail showToast={showToast} />} />
+          <Route path="/dashboard" element={<Dashboard showToast={showToast} />} />
       </Routes>
       {toast && (
         <Toast

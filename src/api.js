@@ -133,27 +133,12 @@ export async function acceptTask(taskId, doerId, doerName) {
 }
 
 export async function verifyOtp(taskId, otp) {
-  const { data: task, error } = await supabase
-    .from('tasks')
-    .select('amount, otp_code, status')
-    .eq('id', taskId)
-    .single();
+  const { data, error } = await supabase.rpc('complete_task_and_credit', {
+    p_task_id: taskId,
+    p_otp:     otp,
+  });
   if (error) throw error;
-
-  if (task.status !== 'accepted' || task.otp_code !== otp) {
-    return { success: false };
-  }
-
-  const earn = Math.round(task.amount * 0.8);
-
-  const { error: updateError } = await supabase
-    .from('tasks')
-    .update({ status: 'completed' })
-    .eq('id', taskId)
-    .eq('otp_code', otp);
-
-  if (updateError) throw updateError;
-  return { success: true, earn };
+  return data;
 }
 
 export async function cancelTask(taskId) {
@@ -214,4 +199,29 @@ export async function checkIfRated(taskId) {
     .eq('task_id', taskId)
     .maybeSingle();
   return !!data;
+}
+export async function fetchWalletData(userId) {
+  const [profileRes, tasksRes, withdrawalsRes] = await Promise.all([
+    supabase.from('profiles').select('wallet_balance, rating').eq('id', userId).single(),
+    supabase.from('tasks').select('*').eq('doer_id', userId).eq('status', 'completed').order('created_at', { ascending: false }),
+    supabase.from('withdrawal_requests').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+  ]);
+
+  if (profileRes.error) throw profileRes.error;
+
+  return {
+    walletBalance:  profileRes.data.wallet_balance ?? 0,
+    rating:         profileRes.data.rating ?? 5.0,
+    completedTasks: tasksRes.data ?? [],
+    withdrawals:    withdrawalsRes.data ?? [],
+  };
+}
+export async function requestWithdrawal(userId, amount, upiId) {
+  const { data, error } = await supabase.rpc('request_withdrawal', {
+    p_user_id: userId,
+    p_amount:  amount,
+    p_upi_id:  upiId,
+  });
+  if (error) throw error;
+  return data;
 }
