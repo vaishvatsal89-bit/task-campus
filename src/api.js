@@ -196,3 +196,22 @@ export function subscribeToTask(taskId, onUpdate) {
 
   return () => supabase.removeChannel(channel);
 }
+export async function submitRating(taskId, raterId, ratedId, score) {
+  const { data, error } = await supabase.rpc('submit_rating', {
+    p_task_id:  taskId,
+    p_rater_id: raterId,
+    p_rated_id: ratedId,
+    p_score:    score,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function checkIfRated(taskId) {
+  const { data } = await supabase
+    .from('ratings')
+    .select('id')
+    .eq('task_id', taskId)
+    .maybeSingle();
+  return !!data;
+}

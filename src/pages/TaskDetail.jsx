@@ -14,8 +14,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchTaskById, acceptTask, verifyOtp, cancelTask, subscribeToTask } from '../api';
-
+import { fetchTaskById, acceptTask, verifyOtp, cancelTask, subscribeToTask, submitRating, checkIfRated } from '../api';
 export default function TaskDetail({ showToast }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -28,11 +27,17 @@ export default function TaskDetail({ showToast }) {
   const [otpErr,  setOtpErr]  = useState(false);
   const [rating,  setRating]  = useState(0);
   const [done,    setDone]    = useState(false);
-
+  const [hasRated, setHasRated] = useState(false);
   /* Load task on mount */
   useEffect(() => {
-    loadTask();
-  }, [id]);
+  loadTask();
+}, [id]);
+
+useEffect(() => {
+  if (task?.status === 'completed') {
+    checkIfRated(task.id).then(setHasRated);
+  }
+}, [task?.status]);
 
   /* Subscribe to real-time changes on this specific task */
   useEffect(() => {
@@ -81,6 +86,17 @@ export default function TaskDetail({ showToast }) {
     cancelled: { label:'Cancelled',   cls:'badge-gray'   },
   };
   const sb = statusMap[task.status] || statusMap.open;
+
+  async function handleRatingSubmit() {
+  if (!rating) { showToast('Pick a star rating first', 'error'); return; }
+  try {
+    await submitRating(task.id, user.id, task.doer_id, rating);
+    setHasRated(true);
+    showToast(`Rated ${task.doer_name} ⭐`, 'success');
+  } catch (err) {
+    showToast(err.message || 'Failed to submit rating', 'error');
+  }
+}
 
   /* Accept task */
   async function handleAccept() {
@@ -228,20 +244,49 @@ export default function TaskDetail({ showToast }) {
             </div>
           )}
 
+         {/* Rating prompt — shown to poster after task is completed */}
+{isMyPost && task.status === 'completed' && task.doer_id && (
+  <div style={{ marginTop:24, borderTop:'1px solid var(--border)', paddingTop:20 }}>
+    <div className="section-label">Rate the doer</div>
+    {hasRated ? (
+      <div style={{ textAlign:'center', padding:'16px 0', color:'var(--green)', fontSize:14, fontWeight:600 }}>
+        ✓ You've rated {task.doer_name}
+      </div>
+    ) : (
+      <>
+        <p style={{ fontSize:13, color:'var(--text2)', marginBottom:14 }}>
+          How well did <strong>{task.doer_name}</strong> do?
+        </p>
+        <div style={{ display:'flex', gap:10, justifyContent:'center', fontSize:36, marginBottom:16 }}>
+          {[1,2,3,4,5].map(n => (
+            <span
+              key={n}
+              style={{ cursor:'pointer', color: n <= rating ? 'var(--amber)' : 'var(--bg4)', transition:'color .15s' }}
+              onClick={() => setRating(n)}
+            >★</span>
+          ))}
+        </div>
+        <button
+          className="btn btn-md btn-primary btn-full"
+          onClick={handleRatingSubmit}
+          disabled={!rating}
+        >
+          Submit rating
+          </button>
+          </>
+          )}
+          </div>
+        )}
+
+
           {/* Success */}
           {done && (
-            <div style={{ background:'var(--green-bg)', border:'1px solid var(--green-br)', borderRadius:'var(--r2)', padding:24, textAlign:'center', marginTop:24 }}>
-              <div style={{ fontSize:32, marginBottom:8 }}>🎉</div>
-              <div style={{ fontSize:16, fontWeight:700, marginBottom:6 }}>Task completed!</div>
-              <div style={{ fontSize:13, color:'var(--text2)', marginBottom:16 }}>₹{earn} credited to your wallet.</div>
-              <div style={{ display:'flex', gap:8, justifyContent:'center', fontSize:28, marginBottom:16 }}>
-                {[1,2,3,4,5].map(n => (
-                  <span key={n} style={{ cursor:'pointer', color: n<=rating ? 'var(--amber)':'var(--bg4)', transition:'color .1s' }}
-                    onClick={() => setRating(n)}>★</span>
-                ))}
-              </div>
-              <button className="btn btn-md btn-primary btn-full" onClick={() => navigate('/mytasks')}>View my tasks →</button>
-            </div>
+          <div style={{ background:'var(--green-bg)', border:'1px solid var(--green-br)', borderRadius:'var(--r2)', padding:24, textAlign:'center', marginTop:24 }}>
+          <div style={{ fontSize:32, marginBottom:8 }}>🎉</div>
+          <div style={{ fontSize:16, fontWeight:700, marginBottom:6 }}>Task completed!</div>
+          <div style={{ fontSize:13, color:'var(--text2)', marginBottom:16 }}>₹{earn} credited to your wallet.</div>
+          <button className="btn btn-md btn-primary btn-full" onClick={() => navigate('/mytasks')}>View my tasks →</button>
+          </div>
           )}
         </div>
 
