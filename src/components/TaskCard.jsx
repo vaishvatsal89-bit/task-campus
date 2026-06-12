@@ -10,13 +10,15 @@ const CAT_COLORS = {
 };
 
 function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime();
+  const date = new Date(dateStr);
+  const diff = Date.now() - date.getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Just now';
+  if (mins < 1)  return 'Just now';
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
+  if (hrs < 24)  return `${hrs}h ago`;
+  if (hrs < 48)  return 'Yesterday';
+  return date.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
 }
 
 function timeLeft(expiresAt) {
@@ -69,7 +71,11 @@ export default function TaskCard({ task }) {
             ⏱ {expiry.label}
           </span>
         ) : (
-          <span className="badge badge-gray">⏱ {task.deadline || 'ASAP'}</span>
+          <span className="badge badge-gray">
+          🕐 {task.expires_at
+           ? new Date(task.expires_at).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) + ', ' + new Date(task.expires_at).toLocaleDateString('en-IN', { day:'numeric', month:'short' })
+           : task.deadline || 'ASAP'}
+          </span>
         )}
 
         <span className="badge badge-gray" style={{ marginLeft: 'auto' }}>
