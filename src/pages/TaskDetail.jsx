@@ -14,7 +14,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchTaskById, acceptTask, verifyOtp, cancelTask, subscribeToTask, submitRating, checkIfRated } from '../api';
+import { fetchTaskById, acceptTask, verifyOtp, cancelTask, subscribeToTask, submitRating, checkIfRated, reopenTask } from '../api';
 export default function TaskDetail({ showToast }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -162,6 +162,32 @@ useEffect(() => {
     }
   }
 
+  // Detect overdue: accepted but past expires_at (or 24h past accepted_at as fallback)
+function isOverdue(t) {
+  if (t.status !== 'accepted') return false;
+  if (t.expires_at) return new Date(t.expires_at) < new Date();
+  if (t.accepted_at) return Date.now() - new Date(t.accepted_at).getTime() > 24 * 60 * 60 * 1000;
+  return false;
+}
+
+async function handleReopen() {
+  if (!window.confirm('Re-open this task? The doer will receive a warning.')) return;
+  try {
+    const result = await reopenTask(task.id, user.id);
+    if (result.success) {
+      const msg = result.banned
+        ? `Task re-opened. ${task.doer_name} has been banned for 7 days (3 warnings).`
+        : `Task re-opened. ${task.doer_name} now has ${result.warning_count} warning(s).`;
+      showToast(msg, 'info', 5000);
+      loadTask();
+    } else {
+      showToast(result.message || 'Failed to re-open', 'error');
+    }
+  } catch (err) {
+    showToast(err.message || 'Error', 'error');
+  }
+}
+
   return (
     <div className="page-wrap">
       <div style={styles.backBtn} onClick={() => navigate('/')}>← Back to tasks</div>
@@ -228,6 +254,34 @@ useEffect(() => {
               </div>
             </div>
           )}
+           
+           {/* Overdue banner — shown to both poster and doer */}
+          {isOverdue(task) && (
+           <div style={{ marginTop:20, background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:'var(--r2)', padding:16 }}>
+           <div style={{ fontSize:14, fontWeight:700, color:'#f87171', marginBottom:6 }}>
+           ⚠ Task overdue
+            </div>
+           {isMyPost && (
+            <>
+           <p style={{ fontSize:13, color:'var(--text2)', marginBottom:12 }}>
+           <strong>{task.doer_name}</strong> didn't complete this in time. You can re-open it so someone else can accept it. The doer will receive a warning.
+           </p>
+           <button
+           className="btn btn-md btn-full"
+           style={{ background:'rgba(239,68,68,0.15)', color:'#f87171', border:'1px solid rgba(239,68,68,0.3)' }}
+           onClick={handleReopen}
+           >
+           Re-open task
+           </button>
+           </>
+         )}
+        {isMyTask && (
+        <p style={{ fontSize:13, color:'var(--text2)' }}>
+         You missed the deadline for this task. Please complete and verify the OTP as soon as possible, or the poster may re-open it and issue a warning to your account.
+       </p>
+       )}
+       </div>
+       )}
 
           {/* OTP shown to POSTER (so they can share it with doer) */}
           {isMyPost && task.status === 'accepted' && task.otp_code && (

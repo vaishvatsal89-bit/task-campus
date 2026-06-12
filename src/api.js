@@ -225,3 +225,11 @@ export async function requestWithdrawal(userId, amount, upiId) {
   if (error) throw error;
   return data;
 }
+export async function reopenTask(taskId, posterId) {
+  const { data, error } = await supabase.rpc('reopen_task', {
+    p_task_id:   taskId,
+    p_poster_id: posterId,
+  });
+  if (error) throw error;
+  return data;
+}
