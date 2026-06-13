@@ -14,10 +14,11 @@ import { useAuth } from '../context/AuthContext';
 import { fetchMyTasks } from '../api';
 
 const STATUS_CONFIG = {
-  open:      { label:'Open',        cls:'badge-open',   amtColor:'var(--text)' },
+  open:      { label:'Open',        cls:'badge-open',   amtColor:'var(--text)'    },
   accepted:  { label:'In progress', cls:'badge-active', amtColor:'var(--purple2)' },
-  completed: { label:'Completed',   cls:'badge-done',   amtColor:'var(--green)' },
-  cancelled: { label:'Cancelled',   cls:'badge-gray',   amtColor:'var(--text3)' },
+  completed: { label:'Completed',   cls:'badge-done',   amtColor:'var(--green)'   },
+  cancelled: { label:'Cancelled',   cls:'badge-gray',   amtColor:'var(--text3)'   },
+  expired:   { label:'Expired',     cls:'badge-gray',   amtColor:'var(--text3)'   },
 };
 
 const CAT_META = {

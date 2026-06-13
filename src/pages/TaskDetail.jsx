@@ -80,11 +80,12 @@ useEffect(() => {
   const isMyTask  = isLoggedIn && task.doer_id    === user?.id;
 
   const statusMap = {
-    open:      { label:'Open',        cls:'badge-open'   },
-    accepted:  { label:'In progress', cls:'badge-active' },
-    completed: { label:'Completed',   cls:'badge-done'   },
-    cancelled: { label:'Cancelled',   cls:'badge-gray'   },
-  };
+  open:      { label:'Open',        cls:'badge-open'   },
+  accepted:  { label:'In progress', cls:'badge-active' },
+  completed: { label:'Completed',   cls:'badge-done'   },
+  cancelled: { label:'Cancelled',   cls:'badge-gray'   },
+  expired:   { label:'Expired',     cls:'badge-gray'   },
+};
   const sb = statusMap[task.status] || statusMap.open;
 
   async function handleRatingSubmit() {
@@ -277,32 +278,38 @@ async function handleReopen() {
           )}
            
            {/* Overdue banner — shown to both poster and doer */}
-          {isOverdue(task) && (
-           <div style={{ marginTop:20, background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:'var(--r2)', padding:16 }}>
-           <div style={{ fontSize:14, fontWeight:700, color:'#f87171', marginBottom:6 }}>
-           ⚠ Task overdue
-            </div>
-           {isMyPost && (
-            <>
-           <p style={{ fontSize:13, color:'var(--text2)', marginBottom:12 }}>
-           <strong>{task.doer_name}</strong> didn't complete this in time. You can re-open it so someone else can accept it. The doer will receive a warning.
-           </p>
-           <button
-           className="btn btn-md btn-full"
-           style={{ background:'rgba(239,68,68,0.15)', color:'#f87171', border:'1px solid rgba(239,68,68,0.3)' }}
-           onClick={handleReopen}
-           >
-           Re-open task
-           </button>
-           </>
-         )}
-        {isMyTask && (
-        <p style={{ fontSize:13, color:'var(--text2)' }}>
-         You missed the deadline for this task. Please complete and verify the OTP as soon as possible, or the poster may re-open it and issue a warning to your account.
-       </p>
-       )}
-       </div>
-       )}
+          {(isOverdue(task) || task.status === 'expired') && (
+  <div style={{ marginTop:20, background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:'var(--r2)', padding:16 }}>
+    <div style={{ fontSize:14, fontWeight:700, color:'#f87171', marginBottom:6 }}>
+      {task.status === 'expired' ? '⏰ Task expired' : '⚠ Task overdue'}
+    </div>
+    {isMyPost && (
+      <>
+        <p style={{ fontSize:13, color:'var(--text2)', marginBottom:12 }}>
+          {task.status === 'expired'
+            ? `The deadline passed and ${task.doer_name} didn't complete this. They've been warned. You can re-open it for someone else.`
+            : `${task.doer_name} didn't complete this in time. Re-open it so someone else can accept it.`
+          }
+        </p>
+        <button
+          className="btn btn-md btn-full"
+          style={{ background:'rgba(239,68,68,0.15)', color:'#f87171', border:'1px solid rgba(239,68,68,0.3)' }}
+          onClick={handleReopen}
+        >
+          Re-open task
+        </button>
+      </>
+    )}
+    {isMyTask && (
+      <p style={{ fontSize:13, color:'var(--text2)' }}>
+        {task.status === 'expired'
+          ? 'You missed the deadline for this task and received a warning. 3 warnings = 7 day ban.'
+          : 'You missed the deadline. Complete and verify the OTP immediately, or the poster may re-open it and issue a warning.'
+        }
+      </p>
+    )}
+  </div>
+)}
 
           {/* OTP shown to POSTER (so they can share it with doer) */}
           {isMyPost && task.status === 'accepted' && task.otp_code && (
@@ -396,22 +403,22 @@ async function handleReopen() {
               <div style={{ textAlign:'center', fontSize:13, color:'var(--text3)' }}>Already accepted by someone else.</div>
             )}
             {isMyTask && task.status === 'accepted' && (
-  <div style={{ textAlign:'center' }}>
-    <div style={{ fontSize:13, color:'var(--purple2)', fontWeight:600, marginBottom:12 }}>
-      ✓ You accepted this task
-    </div>
-    <div style={{ fontSize:12, color:'var(--text3)', marginBottom:16 }}>
-      Enter the OTP on the left when done
-    </div>
-    <button
-      className="btn btn-md btn-full"
-      style={{ background:'rgba(239,68,68,0.1)', color:'#f87171', border:'1px solid rgba(239,68,68,0.3)', fontSize:12 }}
-      onClick={handleDoerCancel}
-    >
-      ✕ Cancel task (warning)
-    </button>
-  </div>
-)}
+           <div style={{ textAlign:'center' }}>
+           <div style={{ fontSize:13, color:'var(--purple2)', fontWeight:600, marginBottom:12 }}>
+             ✓ You accepted this task
+           </div>
+           <div style={{ fontSize:12, color:'var(--text3)', marginBottom:16 }}>
+             Enter the OTP on the left when done
+           </div>
+         <button
+           className="btn btn-md btn-full"
+           style={{ background:'rgba(239,68,68,0.1)', color:'#f87171', border:'1px solid rgba(239,68,68,0.3)', fontSize:12 }}
+           onClick={handleDoerCancel}
+         >
+           ✕ Cancel task (warning)
+         </button>
+       </div>
+        )}
             {task.status === 'completed' && (
               <div style={{ textAlign:'center', fontSize:13, color:'var(--green)', fontWeight:600 }}>✓ Completed</div>
             )}
