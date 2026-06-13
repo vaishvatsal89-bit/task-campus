@@ -260,3 +260,33 @@ export async function createRazorpayOrder(amount) {
   if (data.error) throw new Error(data.error);
   return data; // { order_id, key_id }
 }
+export async function updateUpiId(userId, upiId) {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ upi_id: upiId.trim() })
+    .eq('id', userId);
+  if (error) throw error;
+}
+
+export async function fetchTransactions(userId) {
+  const [tasksRes, withdrawalsRes] = await Promise.all([
+    supabase
+      .from('tasks')
+      .select('id, title, amount, created_at, poster_name')
+      .eq('doer_id', userId)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('withdrawal_requests')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false }),
+  ]);
+
+  if (tasksRes.error) throw tasksRes.error;
+
+  return {
+    deposits:    tasksRes.data ?? [],
+    withdrawals: withdrawalsRes.data ?? [],
+  };
+}

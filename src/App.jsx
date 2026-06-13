@@ -14,6 +14,7 @@ import Privacy from './pages/Privacy';
 import Terms   from './pages/Terms';
 import Refund  from './pages/Refund';
 import Footer  from './components/Footer';
+import Profile from './pages/Profile';
 
 function Toast({ message, type, duration, onDone }) {
   const [visible, setVisible] = useState(false);
@@ -60,6 +61,7 @@ function AppContent() {
       <Route path="/privacy"   element={<Privacy />} />
       <Route path="/terms"     element={<Terms />} />
       <Route path="/refund"    element={<Refund />} />
+      <Route path="/profile" element={<Profile showToast={showToast} />} />
     </Routes>
  m    <Footer />
       {toast && (
