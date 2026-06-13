@@ -298,3 +298,16 @@ export async function doerCancelTask(taskId, doerId) {
   if (error) throw error;
   return data;
 }
+export async function verifyAndCreateTask(paymentId, orderId, signature, taskData) {
+  const { data, error } = await supabase.functions.invoke('verify-and-create-task', {
+    body: {
+      payment_id: paymentId,
+      order_id:   orderId,
+      signature:  signature,
+      task:       taskData,
+    }
+  });
+  if (error) throw error;
+  if (data.error) throw new Error(data.error);
+  return data;
+}

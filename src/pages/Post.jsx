@@ -11,7 +11,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { createTask, createRazorpayOrder } from '../api';
+import { createRazorpayOrder, verifyAndCreateTask } from '../api';
 const CATEGORIES = ['Delivery', 'Study help', 'Errand', 'Tech help', 'Print job', 'Other'];
 
 export default function Post({ showToast }) {
@@ -85,34 +85,35 @@ async function handleSubmit(e) {
       theme: { color: '#8B7CF8' },
 
       // Step 3 — payment done → create task
-      handler: async function (response) {
-        try {
-          await createTask({
-            title:           title.trim(),
-            description:     desc.trim() + (location ? ` | Location: ${location}` : ''),
-            category,
-            amount:          amtNum,
-            deadline:        deadline,
-            expires_at:      getExpiresAt(deadline),
-            poster_id:       user.id,
-            poster_name:     profile?.name || user.email,
-            poster_initials: initials,
-            poster_rating:   profile?.rating || 5.0,
-            payment_id:      response.razorpay_payment_id,
-          });
-          showToast('Task posted! Students are being notified. 🎉', 'success');
-          navigate('/');
-        } catch (err) {
-          showToast(
-            'Payment done but task failed. Email vaishvatsal89@gmail.com with payment ID: ' +
-            response.razorpay_payment_id,
-            'error',
-            8000
-          );
-        } finally {
-          setLoading(false);
-        }
-      },
+       handler: async function (response) {
+  try {
+    await verifyAndCreateTask(
+      response.razorpay_payment_id,
+      response.razorpay_order_id,
+      response.razorpay_signature,
+      {
+        title:           title.trim(),
+        description:     desc.trim() + (location ? ` | Location: ${location}` : ''),
+        category,
+        amount:          amtNum,
+        deadline:        deadline,
+        expires_at:      getExpiresAt(deadline),
+        poster_name:     profile?.name || user.email,
+        poster_initials: initials,
+        poster_rating:   profile?.rating || 5.0,
+      }
+    );
+    showToast('Task posted! Students are being notified. 🎉', 'success');
+    navigate('/');
+  } catch (err) {
+    showToast(
+      err.message || 'Verification failed. Email vaishvatsal89@gmail.com',
+      'error', 6000
+    );
+  } finally {
+    setLoading(false);
+  }
+},
 
       modal: {
         ondismiss: function () {

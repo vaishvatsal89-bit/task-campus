@@ -148,15 +148,16 @@ useEffect(() => {
   async function checkOtp(entered) {
     try {
       const result = await verifyOtp(id, entered);
-      if (result.success) {
-        setDone(true);
-        showToast(`OTP verified! ₹${result.earn} credited 🎉`, 'success', 4000);
-        loadTask();
-      } else {
-        setOtpErr(true);
-        showToast('Wrong OTP. Try again.', 'error');
-        setTimeout(() => { setOtp(''); setOtpErr(false); }, 800);
-      }
+        if (result.success) {
+  setDone(true);
+  showToast(`OTP verified! ₹${result.earn} credited 🎉`, 'success', 4000);
+  loadTask();
+} else {
+  setOtpErr(true);
+  showToast(result.message || 'Wrong OTP. Try again.', 'error');
+  setTimeout(() => { setOtp(''); setOtpErr(false); }, 800);
+  loadTask();
+}
     } catch (err) {
       showToast(err.message || 'OTP check failed', 'error');
       setOtp('');
