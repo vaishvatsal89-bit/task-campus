@@ -15,6 +15,7 @@ import Terms   from './pages/Terms';
 import Refund  from './pages/Refund';
 import Footer  from './components/Footer';
 import Profile from './pages/Profile';
+import { useTaskNotifications } from './hooks/useTaskNotifications';
 
 function Toast({ message, type, duration, onDone }) {
   const [visible, setVisible] = useState(false);
@@ -39,9 +40,9 @@ function Toast({ message, type, duration, onDone }) {
   );
 }
 
-function AppContent() {
+ function AppContent() {
   const [toast, setToast] = useState(null);
-
+  useTaskNotifications();
   const showToast = useCallback((message, type = 'info', duration = 3000) => {
     setToast({ message, type, duration });
   }, []);
