@@ -34,7 +34,7 @@ export default function Profile({ showToast }) {
     setSaving(true);
     try {
       await updateUpiId(user.id, upiId);
-      if (refreshProfile) await refreshProfile();
+       try { if (refreshProfile) await refreshProfile(); } catch {}
       showToast('UPI ID updated ✓', 'success');
     } catch (err) {
       showToast(err.message || 'Failed to update', 'error');

@@ -260,13 +260,11 @@ export async function createRazorpayOrder(amount) {
   if (data.error) throw new Error(data.error);
   return data; // { order_id, key_id }
 }
-export async function updateUpiId(userId, upiId) {
+  export async function updateUpiId(userId, upiId) {
   const { error } = await supabase
     .from('profiles')
     .update({ upi_id: upiId.trim() })
-    .eq('id', userId)
-    .select('id')
-    .single();
+    .eq('id', userId);
   if (error) throw error;
 }
 
