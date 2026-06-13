@@ -264,7 +264,9 @@ export async function updateUpiId(userId, upiId) {
   const { error } = await supabase
     .from('profiles')
     .update({ upi_id: upiId.trim() })
-    .eq('id', userId);
+    .eq('id', userId)
+    .select('id')
+    .single();
   if (error) throw error;
 }
 
@@ -289,4 +291,12 @@ export async function fetchTransactions(userId) {
     deposits:    tasksRes.data ?? [],
     withdrawals: withdrawalsRes.data ?? [],
   };
+}
+export async function doerCancelTask(taskId, doerId) {
+  const { data, error } = await supabase.rpc('doer_cancel_task', {
+    p_task_id: taskId,
+    p_doer_id: doerId,
+  });
+  if (error) throw error;
+  return data;
 }

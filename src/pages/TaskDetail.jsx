@@ -14,7 +14,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchTaskById, acceptTask, verifyOtp, cancelTask, subscribeToTask, submitRating, checkIfRated, reopenTask } from '../api';
+import { fetchTaskById, acceptTask, verifyOtp, cancelTask, subscribeToTask, submitRating, checkIfRated, reopenTask, doerCancelTask } from '../api';
 export default function TaskDetail({ showToast }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -168,6 +168,27 @@ function isOverdue(t) {
   if (t.expires_at) return new Date(t.expires_at) < new Date();
   if (t.accepted_at) return Date.now() - new Date(t.accepted_at).getTime() > 24 * 60 * 60 * 1000;
   return false;
+}
+
+async function handleDoerCancel() {
+  if (!window.confirm(
+    'Cancel this task? You will receive a warning. 3 warnings = 7 day ban.'
+  )) return;
+
+  try {
+    const result = await doerCancelTask(task.id, user.id);
+    if (result.success) {
+      const msg = result.banned
+        ? 'Task cancelled. You have been banned for 7 days (3 warnings).'
+        : `Task cancelled. You now have ${result.warning_count}/3 warning(s).`;
+      showToast(msg, result.banned ? 'error' : 'info', 5000);
+      navigate('/');
+    } else {
+      showToast(result.message || 'Failed to cancel', 'error');
+    }
+  } catch (err) {
+    showToast(err.message || 'Error', 'error');
+  }
 }
 
 async function handleReopen() {
@@ -375,11 +396,22 @@ async function handleReopen() {
               <div style={{ textAlign:'center', fontSize:13, color:'var(--text3)' }}>Already accepted by someone else.</div>
             )}
             {isMyTask && task.status === 'accepted' && (
-              <div style={{ textAlign:'center', fontSize:13, color:'var(--purple2)', fontWeight:600 }}>
-                ✓ You accepted this task<br/>
-                <span style={{ fontWeight:400, color:'var(--text3)', fontSize:12 }}>Enter the OTP on the left when done</span>
-              </div>
-            )}
+  <div style={{ textAlign:'center' }}>
+    <div style={{ fontSize:13, color:'var(--purple2)', fontWeight:600, marginBottom:12 }}>
+      ✓ You accepted this task
+    </div>
+    <div style={{ fontSize:12, color:'var(--text3)', marginBottom:16 }}>
+      Enter the OTP on the left when done
+    </div>
+    <button
+      className="btn btn-md btn-full"
+      style={{ background:'rgba(239,68,68,0.1)', color:'#f87171', border:'1px solid rgba(239,68,68,0.3)', fontSize:12 }}
+      onClick={handleDoerCancel}
+    >
+      ✕ Cancel task (warning)
+    </button>
+  </div>
+)}
             {task.status === 'completed' && (
               <div style={{ textAlign:'center', fontSize:13, color:'var(--green)', fontWeight:600 }}>✓ Completed</div>
             )}
