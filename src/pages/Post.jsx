@@ -11,8 +11,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { createTask } from '../api';
-
+import { createTask, createRazorpayOrder } from '../api';
 const CATEGORIES = ['Delivery', 'Study help', 'Errand', 'Tech help', 'Print job', 'Other'];
 
 export default function Post({ showToast }) {
@@ -47,55 +46,89 @@ export default function Post({ showToast }) {
   return null;
 }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+async function handleSubmit(e) {
+  e.preventDefault();
 
-    if (!isLoggedIn) {
-      showToast('Please login first', 'error');
-      navigate('/login');
-      return;
-    }
-
-    const errs = {};
-    if (!title.trim())          errs.title  = 'Title is required';
-    if (!desc.trim())           errs.desc   = 'Description is required';
-    if (!amtNum || amtNum < 30) errs.amount = 'Minimum ₹30';
-    if (Object.keys(errs).length) { setErrors(errs); return; }
-
-    setLoading(true);
-
-    const initials = (profile?.name || user.email)
-      .split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
-
-    try {
-      /*
-        createTask() calls Supabase INSERT.
-        poster_id is user.id — the real UUID from Supabase Auth.
-        The database generates the task UUID automatically.
-        Realtime subscription on Home page fires instantly
-        so other students see this task without refreshing.
-      */
-      await createTask({
-        title:           title.trim(),
-        description:     desc.trim() + (location ? ` | Location: ${location}` : ''),
-        category,
-        amount:          amtNum,
-        deadline:   deadline,
-        expires_at: getExpiresAt(deadline),
-        poster_id:       user.id,
-        poster_name:     profile?.name || user.email,
-        poster_initials: initials,
-        poster_rating:   profile?.rating || 5.0,
-      });
-
-      showToast('Task posted! Students are being notified.', 'success');
-      navigate('/');
-    } catch (err) {
-      showToast(err.message || 'Failed to post task', 'error');
-    } finally {
-      setLoading(false);
-    }
+  if (!isLoggedIn) {
+    showToast('Please login first', 'error');
+    navigate('/login');
+    return;
   }
+
+  const errs = {};
+  if (!title.trim())          errs.title  = 'Title is required';
+  if (!desc.trim())           errs.desc   = 'Description is required';
+  if (!amtNum || amtNum < 30) errs.amount = 'Minimum ₹30';
+  if (Object.keys(errs).length) { setErrors(errs); return; }
+
+  setLoading(true);
+
+  const initials = (profile?.name || user.email)
+    .split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+
+  try {
+    // Step 1 — create Razorpay order via Edge Function
+    const { order_id, key_id } = await createRazorpayOrder(amtNum);
+
+    // Step 2 — open Razorpay checkout popup
+    const rzp = new window.Razorpay({
+      key:         key_id,
+      amount:      amtNum * 100,
+      currency:    'INR',
+      name:        'TaskCampus',
+      description: title.trim(),
+      order_id:    order_id,
+      prefill: {
+        email: user.email,
+        name:  profile?.name || '',
+      },
+      theme: { color: '#8B7CF8' },
+
+      // Step 3 — payment done → create task
+      handler: async function (response) {
+        try {
+          await createTask({
+            title:           title.trim(),
+            description:     desc.trim() + (location ? ` | Location: ${location}` : ''),
+            category,
+            amount:          amtNum,
+            deadline:        deadline,
+            expires_at:      getExpiresAt(deadline),
+            poster_id:       user.id,
+            poster_name:     profile?.name || user.email,
+            poster_initials: initials,
+            poster_rating:   profile?.rating || 5.0,
+            payment_id:      response.razorpay_payment_id,
+          });
+          showToast('Task posted! Students are being notified. 🎉', 'success');
+          navigate('/');
+        } catch (err) {
+          showToast(
+            'Payment done but task failed. Email vaishvatsal89@gmail.com with payment ID: ' +
+            response.razorpay_payment_id,
+            'error',
+            8000
+          );
+        } finally {
+          setLoading(false);
+        }
+      },
+
+      modal: {
+        ondismiss: function () {
+          showToast('Payment cancelled', 'info');
+          setLoading(false);
+        },
+      },
+    });
+
+    rzp.open();
+
+  } catch (err) {
+    showToast(err.message || 'Failed to initiate payment', 'error');
+    setLoading(false);
+  }
+}
 
   return (
     <div className="page-wrap">
@@ -177,7 +210,7 @@ export default function Post({ showToast }) {
           </div>
 
           <button className="btn btn-lg btn-primary btn-full" type="submit" disabled={loading}>
-            {loading ? 'Posting...' : 'Post task →'}
+            {loading ? 'Opening payment...' : `Pay ₹${amtNum || '—'} & Post →`}
           </button>
         </form>
 
