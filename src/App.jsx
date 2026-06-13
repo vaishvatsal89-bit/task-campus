@@ -8,6 +8,12 @@ import Post from './pages/Post';
 import MyTasks from './pages/MyTasks';
 import TaskDetail from './pages/TaskDetail';
 import Dashboard from './pages/Dashboard';
+import About   from './pages/About';
+import Contact from './pages/Contact';
+import Privacy from './pages/Privacy';
+import Terms   from './pages/Terms';
+import Refund  from './pages/Refund';
+import Footer  from './components/Footer';
 
 function Toast({ message, type, duration, onDone }) {
   const [visible, setVisible] = useState(false);
@@ -43,13 +49,19 @@ function AppContent() {
     <>
       <Navbar showToast={showToast} />
       <Routes>
-          <Route path="/" element={<Home showToast={showToast} />} />
-          <Route path="/login" element={<Login showToast={showToast} />} />
-          <Route path="/post" element={<Post showToast={showToast} />} />
-          <Route path="/mytasks" element={<MyTasks showToast={showToast} />} />
-          <Route path="/task/:id" element={<TaskDetail showToast={showToast} />} />
-          <Route path="/dashboard" element={<Dashboard showToast={showToast} />} />
-      </Routes>
+      <Route path="/"          element={<Home      showToast={showToast} />} />
+      <Route path="/login"     element={<Login     showToast={showToast} />} />
+      <Route path="/post"      element={<Post      showToast={showToast} />} />
+      <Route path="/mytasks"   element={<MyTasks   showToast={showToast} />} />
+      <Route path="/task/:id"  element={<TaskDetail showToast={showToast} />} />
+      <Route path="/dashboard" element={<Dashboard showToast={showToast} />} />
+      <Route path="/about"     element={<About />} />
+      <Route path="/contact"   element={<Contact />} />
+      <Route path="/privacy"   element={<Privacy />} />
+      <Route path="/terms"     element={<Terms />} />
+      <Route path="/refund"    element={<Refund />} />
+    </Routes>
+ m    <Footer />
       {toast && (
         <Toast
           message={toast.message}
