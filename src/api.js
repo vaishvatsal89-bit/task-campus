@@ -321,3 +321,15 @@ export async function fetchHomeStats() {
   const totalEarned   = completedTasks.reduce((s, t) => s + Math.round(t.amount * 0.8), 0);
   return { students, completed: completedTasks.length, totalEarned };
 }
+export async function sendPasswordReset(email) {
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    email.trim(),
+    { redirectTo: 'https://task-campus-three.vercel.app/reset-password' }
+  );
+  if (error) throw error;
+}
+
+export async function updatePassword(newPassword) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+}
