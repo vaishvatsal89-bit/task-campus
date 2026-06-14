@@ -184,7 +184,7 @@ export default function Login({ showToast }) {
           />
           <button
             type="button"
-            style={{ background:'none', border:'none', color:'var(--text3)', cursor:'pointer', font:'inherit', fontSize:12, padding:'4px 0 0', textAlign:'right', width:'100%' }}
+            style={{ background:'none', border:'none', color:'var(--purple2)', cursor:'pointer', font:'inherit', fontSize:12, padding:'4px 0 0', textAlign:'right', width:'100%' }}
             onClick={() => { setForgotMode(true); setForgotEmail(loginEmail); setError(''); }}
           >
             Forgot password?
