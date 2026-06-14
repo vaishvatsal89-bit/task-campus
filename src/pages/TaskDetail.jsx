@@ -14,7 +14,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchTaskById, acceptTask, verifyOtp, cancelTask, subscribeToTask, submitRating, checkIfRated, reopenTask, doerCancelTask } from '../api';
+import { fetchTaskById, acceptTask, verifyOtp, cancelTaskWithRefund, subscribeToTask, submitRating, checkIfRated, reopenTask, doerCancelTask } from '../api';
 export default function TaskDetail({ showToast }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -121,15 +121,24 @@ useEffect(() => {
 
   /* Cancel task (poster only) */
   async function handleCancel() {
-    if (!window.confirm('Cancel and delete this task?')) return;
-    try {
-      await cancelTask(id);
-      showToast('Task cancelled', 'info');
-      navigate('/');
-    } catch (err) {
-      showToast('Failed to cancel', 'error');
+  if (!window.confirm(
+    task.payment_id
+      ? 'Cancel this task? Your payment will be refunded within 5–7 business days.'
+      : 'Cancel and delete this task?'
+  )) return;
+
+  try {
+    const result = await cancelTaskWithRefund(id);
+    if (result.refunded) {
+      showToast(`Task cancelled. ₹${task.amount} refund initiated — arrives in 5–7 days.`, 'success', 7000);
+    } else {
+      showToast('Task cancelled.', 'info');
     }
+    navigate('/');
+  } catch (err) {
+    showToast(err.message || 'Failed to cancel', 'error');
   }
+}
 
   /* OTP entry */
   function otpKey(digit) {

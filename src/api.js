@@ -333,3 +333,11 @@ export async function updatePassword(newPassword) {
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) throw error;
 }
+export async function cancelTaskWithRefund(taskId) {
+  const { data, error } = await supabase.functions.invoke('process-refund', {
+    body: { task_id: taskId },
+  });
+  if (error) throw error;
+  if (data.error) throw new Error(data.error);
+  return data;
+}
