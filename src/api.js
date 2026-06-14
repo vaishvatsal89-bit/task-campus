@@ -311,3 +311,13 @@ export async function verifyAndCreateTask(paymentId, orderId, signature, taskDat
   if (data.error) throw new Error(data.error);
   return data;
 }
+export async function fetchHomeStats() {
+  const [profilesRes, completedRes] = await Promise.all([
+    supabase.from('profiles').select('id', { count: 'exact', head: true }),
+    supabase.from('tasks').select('amount').eq('status', 'completed'),
+  ]);
+  const students      = profilesRes.count || 0;
+  const completedTasks = completedRes.data || [];
+  const totalEarned   = completedTasks.reduce((s, t) => s + Math.round(t.amount * 0.8), 0);
+  return { students, completed: completedTasks.length, totalEarned };
+}
