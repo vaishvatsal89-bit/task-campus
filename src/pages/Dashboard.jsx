@@ -16,6 +16,7 @@ export default function Dashboard({ showToast }) {
   const [loading,        setLoading]        = useState(true);
   const [withdrawAmt,    setWithdrawAmt]    = useState('');
   const [withdrawing,    setWithdrawing]    = useState(false);
+  const isMobile = useWindowWidth() < 640;
 
   useEffect(() => {
     if (!isLoggedIn || !user) return;
@@ -80,10 +81,8 @@ export default function Dashboard({ showToast }) {
       </div>
     );
   }
-
-  const pendingAmt = withdrawals.filter(w => w.status === 'pending').reduce((s, w) => s + w.amount, 0);
-  const quickAmts  = [100, 250, 500].filter(a => a <= walletBalance);
-  const isMobile = useWindowWidth() < 640;
+     const pendingAmt = withdrawals.filter(w => w.status === 'pending').reduce((s, w) => s + w.amount, 0);
+     const quickAmts  = [100, 250, 500].filter(a => a <= walletBalance);
 
   return (
     <div className="page-wrap">
