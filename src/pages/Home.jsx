@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchTasks, subscribeToTasks, fetchHomeStats } from '../api';
+import { fetchTasks, subscribeToTasks, fetchHomeStats, searchTasks } from '../api';
 import TaskCard from '../components/TaskCard';
 
 const CATEGORIES = [
@@ -43,8 +43,8 @@ export default function Home({ showToast }) {
   const [activeFilter, setActiveFilter] = useState('All');
   const [loading,      setLoading]      = useState(true);
   const [error,        setError]        = useState(null);
-  const [stats,        setStats]        = useState(null);
-
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   useEffect(() => {
     loadTasks();
     fetchHomeStats().then(setStats).catch(() => {});
@@ -55,7 +55,25 @@ export default function Home({ showToast }) {
     return () => unsub();
   }, []);
 
-  useEffect(() => { loadTasks(); }, [activeFilter]);
+    useEffect(() => { loadTasks(); }, [activeFilter]);
+
+useEffect(() => {
+  const timer = setTimeout(async () => {
+    if (!searchQuery.trim()) { loadTasks(); return; }
+    setIsSearching(true);
+    setLoading(true);
+    setError(null);
+    try {
+      setTasks(await searchTasks(searchQuery.trim(), activeFilter));
+    } catch {
+      setError('Search failed. Try again.');
+    } finally {
+      setLoading(false);
+      setIsSearching(false);
+    }
+  }, 300);
+  return () => clearTimeout(timer);
+}, [searchQuery, activeFilter]);
 
   async function loadTasks() {
     setLoading(true); setError(null);
@@ -172,12 +190,42 @@ export default function Home({ showToast }) {
 
       {/* ── TASK FEED ───────────────────────────────────── */}
       <section className="page-wrap" id="feed" style={{ animation:'fi .6s ease .4s both' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-          <h2 style={{ fontSize:20, fontWeight:600 }}>Open tasks near you</h2>
-          <span style={S.taskCount}>
-            {loading ? 'Loading…' : `${tasks.length} tasks`}
-          </span>
-        </div>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+  <h2 style={{ fontSize:20, fontWeight:600 }}>Open tasks near you</h2>
+  <span style={S.taskCount}>
+    {loading ? 'Loading…' : `${tasks.length} task${tasks.length !== 1 ? 's' : ''}`}
+  </span>
+</div>
+
+{/* Search bar */}
+<div style={S.searchWrap}>
+  <svg style={S.searchIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+  </svg>
+  <input
+    className="inp"
+    style={S.searchInp}
+    placeholder="Search tasks — delivery, notes, print..."
+    value={searchQuery}
+    onChange={e => setSearchQuery(e.target.value)}
+  />
+  {searchQuery && (
+    <button
+      onClick={() => setSearchQuery('')}
+      style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--text3)', cursor:'pointer', fontSize:18, lineHeight:1, padding:0 }}
+    >
+      ×
+    </button>
+  )}
+</div>
+
+{searchQuery && !loading && (
+  <div style={{ fontSize:13, color:'var(--text3)', marginBottom:16 }}>
+    {tasks.length === 0
+      ? `No tasks found for "${searchQuery}"`
+      : `${tasks.length} result${tasks.length !== 1 ? 's' : ''} for "${searchQuery}"`}
+  </div>
+)}
 
         {/* Category chips */}
         <div style={{ display:'flex', gap:8, marginBottom:24, flexWrap:'wrap' }}>
@@ -274,4 +322,9 @@ const S = {
   chip:       { padding:'7px 16px', borderRadius:20, fontSize:13, fontWeight:500, border:'1px solid var(--border2)', background:'transparent', color:'var(--text2)', cursor:'pointer', fontFamily:'var(--font)', display:'flex', alignItems:'center', gap:6 },
   chipOn:     { background:'var(--purple)', color:'#fff', borderColor:'transparent', boxShadow:'0 2px 12px rgba(139,124,248,.35)' },
   spinner:    { width:28, height:28, border:'2px solid rgba(255,255,255,.1)', borderTopColor:'var(--purple)', borderRadius:'50%', animation:'spin .7s linear infinite' },
+
+
+  searchWrap: { position:'relative', marginBottom:16 },
+  searchIcon: { position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', width:16, height:16, color:'var(--text3)', pointerEvents:'none', zIndex:1 },
+  searchInp:  { paddingLeft:42, paddingRight:36 },
 };

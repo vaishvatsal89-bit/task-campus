@@ -341,3 +341,20 @@ export async function cancelTaskWithRefund(taskId) {
   if (data.error) throw new Error(data.error);
   return data;
 }
+export async function searchTasks(query, category = 'All') {
+  const now = new Date().toISOString();
+
+  let q = supabase
+    .from('tasks')
+    .select('*')
+    .eq('status', 'open')
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
+    .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
+    .order('created_at', { ascending: false });
+
+  if (category !== 'All') q = q.eq('category', category);
+
+  const { data, error } = await q;
+  if (error) throw error;
+  return data ?? [];
+}
