@@ -15,6 +15,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchTaskById, acceptTask, verifyOtp, cancelTaskWithRefund, subscribeToTask, submitRating, checkIfRated, reopenTask, doerCancelTask } from '../api';
+import { useWindowWidth } from '../hooks/useWindowWidth';
 export default function TaskDetail({ showToast }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -78,6 +79,7 @@ useEffect(() => {
   const earn      = Math.round(task.amount * 0.8);
   const isMyPost  = isLoggedIn && task.poster_id  === user?.id;
   const isMyTask  = isLoggedIn && task.doer_id    === user?.id;
+  const isMobile = useWindowWidth() < 640;
 
   const statusMap = {
   open:      { label:'Open',        cls:'badge-open'   },
@@ -224,7 +226,7 @@ async function handleReopen() {
     <div className="page-wrap">
       <div style={styles.backBtn} onClick={() => navigate('/')}>← Back to tasks</div>
 
-      <div style={styles.layout}>
+         <div style={{ ...styles.layout, gridTemplateColumns: isMobile ? '1fr' : '1fr 280px' }}>
         {/* MAIN */}
         <div style={styles.main}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
@@ -383,7 +385,7 @@ async function handleReopen() {
         </div>
 
         {/* SIDEBAR */}
-        <div style={styles.sidebar}>
+           <div style={{ ...styles.sidebar, position: isMobile ? 'static' : 'sticky', top: 80 }}>
           <div style={styles.actionCard}>
             <div style={{ textAlign:'center', marginBottom:18 }}>
               <div style={{ fontSize:11, color:'var(--text3)', textTransform:'uppercase', letterSpacing:'.06em' }}>You earn</div>

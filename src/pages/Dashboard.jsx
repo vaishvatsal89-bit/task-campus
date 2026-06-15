@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchWalletData, requestWithdrawal } from '../api';
+import { useWindowWidth } from '../hooks/useWindowWidth';
 
 export default function Dashboard({ showToast }) {
   const navigate  = useNavigate();
@@ -82,6 +83,7 @@ export default function Dashboard({ showToast }) {
 
   const pendingAmt = withdrawals.filter(w => w.status === 'pending').reduce((s, w) => s + w.amount, 0);
   const quickAmts  = [100, 250, 500].filter(a => a <= walletBalance);
+  const isMobile = useWindowWidth() < 640;
 
   return (
     <div className="page-wrap">
@@ -117,8 +119,7 @@ export default function Dashboard({ showToast }) {
 
       </div>
 
-      <div style={styles.layout}>
-
+        <div style={{ ...styles.layout, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
         {/* LEFT col */}
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
