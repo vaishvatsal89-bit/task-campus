@@ -14,7 +14,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchTaskById, acceptTask, verifyOtp, cancelTaskWithRefund, subscribeToTask, submitRating, checkIfRated, reopenTask, doerCancelTask } from '../api';
+import { fetchTaskById, acceptTask, verifyOtp, cancelTaskWithRefund, subscribeToTask, submitRating, checkIfRated, reopenTask, doerCancelTask, markOnTheWay} from '../api';
 import { useWindowWidth } from '../hooks/useWindowWidth';
 import ChatBox from '../components/ChatBox';
 import { SkeletonDetail } from '../components/Skeleton';
@@ -83,6 +83,7 @@ useEffect(() => {
   completed: { label:'Completed',   cls:'badge-done'   },
   cancelled: { label:'Cancelled',   cls:'badge-gray'   },
   expired:   { label:'Expired',     cls:'badge-gray'   },
+  on_the_way:{ label:'On the way',  cls:'badge-active' },
 };
   const sb = statusMap[task.status] || statusMap.open;
 
@@ -180,6 +181,20 @@ function isOverdue(t) {
   return false;
 }
 
+   async function handleOnTheWay() {
+  try {
+    const result = await markOnTheWay(task.id, user.id);
+    if (result.success) {
+      showToast('Poster notified — you\'re on the way! 🛵', 'success');
+      loadTask();
+    } else {
+      showToast(result.message || 'Failed', 'error');
+    }
+  } catch (err) {
+    showToast(err.message || 'Error', 'error');
+  }
+}
+
 async function handleDoerCancel() {
   if (!window.confirm(
     'Cancel this task? You will receive a warning. 3 warnings = 7 day ban.'
@@ -261,7 +276,7 @@ async function handleReopen() {
           </div>
 
           {/* OTP section — only for doer when accepted */}
-          {isMyTask && task.status === 'accepted' && !done && (
+          {isMyTask && (task.status === 'accepted' || task.status === 'on_the_way') && !done && (
             <div style={{ marginTop:24, borderTop:'1px solid var(--border)', paddingTop:20 }}>
               <div className="section-label">Enter OTP from poster</div>
               <p style={{ fontSize:13, color:'var(--text2)', marginBottom:8 }}>
@@ -321,7 +336,7 @@ async function handleReopen() {
 )}
 
           {/* OTP shown to POSTER (so they can share it with doer) */}
-          {isMyPost && task.status === 'accepted' && task.otp_code && (
+          {isMyPost && (task.status === 'accepted' || task.status === 'on_the_way') && task.otp_code && (
             <div style={{ marginTop:24, background:'var(--purple-bg)', border:'1px solid var(--purple-br)', borderRadius:'var(--r2)', padding:20 }}>
               <div className="section-label">Your OTP — share this with the doer</div>
               <div style={{ display:'flex', gap:10, justifyContent:'center', marginTop:12 }}>
@@ -421,23 +436,61 @@ async function handleReopen() {
             {isLoggedIn && !isMyPost && !isMyTask && task.status === 'accepted' && (
               <div style={{ textAlign:'center', fontSize:13, color:'var(--text3)' }}>Already accepted by someone else.</div>
             )}
-            {isMyTask && task.status === 'accepted' && (
-           <div style={{ textAlign:'center' }}>
-           <div style={{ fontSize:13, color:'var(--purple2)', fontWeight:600, marginBottom:12 }}>
-             ✓ You accepted this task
-           </div>
-           <div style={{ fontSize:12, color:'var(--text3)', marginBottom:16 }}>
-             Enter the OTP on the left when done
-           </div>
-         <button
-           className="btn btn-md btn-full"
-           style={{ background:'rgba(239,68,68,0.1)', color:'#f87171', border:'1px solid rgba(239,68,68,0.3)', fontSize:12 }}
-           onClick={handleDoerCancel}
-         >
-           ✕ Cancel task (warning)
-         </button>
-       </div>
-        )}
+              {isMyTask && task.status === 'accepted' && (
+  <div style={{ textAlign:'center' }}>
+    <div style={{ fontSize:13, color:'var(--purple2)', fontWeight:600, marginBottom:12 }}>
+      ✓ You accepted this task
+    </div>
+    <div style={{ fontSize:12, color:'var(--text3)', marginBottom:12 }}>
+      Enter OTP when done
+    </div>
+    <button
+      className="btn btn-md btn-primary btn-full"
+      style={{ marginBottom:8 }}
+      onClick={handleOnTheWay}
+    >
+      🛵 I'm on my way
+    </button>
+    <button
+      className="btn btn-md btn-full"
+      style={{ background:'rgba(239,68,68,0.1)', color:'#f87171', border:'1px solid rgba(239,68,68,0.3)', fontSize:12 }}
+      onClick={handleDoerCancel}
+    >
+      ✕ Cancel task (warning)
+    </button>
+  </div>
+)}
+
+{isMyTask && task.status === 'on_the_way' && (
+  <div style={{ textAlign:'center' }}>
+    <div style={{ fontSize:20, marginBottom:8 }}>🛵</div>
+    <div style={{ fontSize:13, color:'var(--purple2)', fontWeight:600, marginBottom:6 }}>
+      You're on the way!
+    </div>
+    <div style={{ fontSize:12, color:'var(--text3)', marginBottom:12 }}>
+      Enter OTP when you've completed the task
+    </div>
+    <button
+      className="btn btn-md btn-full"
+      style={{ background:'rgba(239,68,68,0.1)', color:'#f87171', border:'1px solid rgba(239,68,68,0.3)', fontSize:12 }}
+      onClick={handleDoerCancel}
+    >
+      ✕ Cancel task (warning)
+    </button>
+  </div>
+)}
+
+     {isMyPost && task.status === 'on_the_way' && (
+     <div style={{ textAlign:'center', padding:'12px 0' }}>
+     <div style={{ fontSize:24, marginBottom:6 }}>🛵</div>
+     <div style={{ fontSize:13, color:'var(--purple2)', fontWeight:600 }}>
+      {task.doer_name} is on the way!
+    </div>
+     <div style={{ fontSize:11, color:'var(--text3)', marginTop:4 }}>
+      Get ready to share your OTP
+     </div>
+   </div>
+   )}
             {task.status === 'completed' && (
               <div style={{ textAlign:'center', fontSize:13, color:'var(--green)', fontWeight:600 }}>✓ Completed</div>
             )}

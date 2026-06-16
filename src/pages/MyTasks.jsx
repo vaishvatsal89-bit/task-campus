@@ -20,6 +20,7 @@ const STATUS_CONFIG = {
   completed: { label:'Completed',   cls:'badge-done',   amtColor:'var(--green)'   },
   cancelled: { label:'Cancelled',   cls:'badge-gray',   amtColor:'var(--text3)'   },
   expired:   { label:'Expired',     cls:'badge-gray',   amtColor:'var(--text3)'   },
+  on_the_way:{ label:'On the way',  cls:'badge-active', amtColor:'var(--purple2)' },
 };
 
 const CAT_META = {

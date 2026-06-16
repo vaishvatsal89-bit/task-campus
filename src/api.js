@@ -387,3 +387,11 @@ export function subscribeToMessages(taskId, onNew) {
     .subscribe();
   return () => supabase.removeChannel(channel);
 }
+export async function markOnTheWay(taskId, doerId) {
+  const { data, error } = await supabase.rpc('mark_on_the_way', {
+    p_task_id: taskId,
+    p_doer_id: doerId,
+  });
+  if (error) throw error;
+  return data;
+}
