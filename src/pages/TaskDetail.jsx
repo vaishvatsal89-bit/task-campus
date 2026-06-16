@@ -38,10 +38,10 @@ export default function TaskDetail({ showToast }) {
 }, [id]);
 
 useEffect(() => {
-  if (task?.status === 'completed') {
-    checkIfRated(task.id).then(setHasRated);
+  if (task?.status === 'completed' && user?.id) {
+    checkIfRated(task.id, user.id).then(setHasRated);
   }
-}, [task?.status]);
+}, [task?.status, user?.id]);
 
   /* Subscribe to real-time changes on this specific task */
   useEffect(() => {
@@ -88,15 +88,16 @@ useEffect(() => {
 
   async function handleRatingSubmit() {
   if (!rating) { showToast('Pick a star rating first', 'error'); return; }
+  const ratedId   = isMyPost ? task.doer_id   : task.poster_id;
+  const ratedName = isMyPost ? task.doer_name : task.poster_name;
   try {
-    await submitRating(task.id, user.id, task.doer_id, rating);
+    await submitRating(task.id, user.id, ratedId, rating);
     setHasRated(true);
-    showToast(`Rated ${task.doer_name} ⭐`, 'success');
+    showToast(`Rated ${ratedName} ⭐`, 'success');
   } catch (err) {
     showToast(err.message || 'Failed to submit rating', 'error');
   }
 }
-
   /* Accept task */
   async function handleAccept() {
     if (!isLoggedIn) { navigate('/login'); return; }
@@ -334,26 +335,27 @@ async function handleReopen() {
             </div>
           )}
 
-         {/* Rating prompt — shown to poster after task is completed */}
-{isMyPost && task.status === 'completed' && task.doer_id && (
+          {/* Rating — shown to BOTH poster and doer after completion */}
+{isLoggedIn && (isMyPost || isMyTask) && task.status === 'completed' && (
   <div style={{ marginTop:24, borderTop:'1px solid var(--border)', paddingTop:20 }}>
-    <div className="section-label">Rate the doer</div>
+    <div className="section-label">
+      {isMyPost ? 'Rate the doer' : 'Rate the poster'}
+    </div>
     {hasRated ? (
       <div style={{ textAlign:'center', padding:'16px 0', color:'var(--green)', fontSize:14, fontWeight:600 }}>
-        ✓ You've rated {task.doer_name}
+        ✓ You've rated {isMyPost ? task.doer_name : task.poster_name}
       </div>
     ) : (
       <>
         <p style={{ fontSize:13, color:'var(--text2)', marginBottom:14 }}>
-          How well did <strong>{task.doer_name}</strong> do?
+          How was your experience with{' '}
+          <strong>{isMyPost ? task.doer_name : task.poster_name}</strong>?
         </p>
         <div style={{ display:'flex', gap:10, justifyContent:'center', fontSize:36, marginBottom:16 }}>
           {[1,2,3,4,5].map(n => (
-            <span
-              key={n}
+            <span key={n}
               style={{ cursor:'pointer', color: n <= rating ? 'var(--amber)' : 'var(--bg4)', transition:'color .15s' }}
-              onClick={() => setRating(n)}
-            >★</span>
+              onClick={() => setRating(n)}>★</span>
           ))}
         </div>
         <button
@@ -362,12 +364,11 @@ async function handleReopen() {
           disabled={!rating}
         >
           Submit rating
-          </button>
-          </>
-          )}
-          </div>
-        )}
-
+        </button>
+      </>
+    )}
+  </div>
+)}
         {/* Chat — visible to poster and doer when task is accepted or completed */}
        {isLoggedIn && (isMyPost || isMyTask) && (task.status === 'accepted' || task.status === 'completed') && (
        <ChatBox

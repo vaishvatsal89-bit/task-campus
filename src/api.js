@@ -192,11 +192,12 @@ export async function submitRating(taskId, raterId, ratedId, score) {
   return data;
 }
 
-export async function checkIfRated(taskId) {
+   export async function checkIfRated(taskId, raterId) {
   const { data } = await supabase
     .from('ratings')
     .select('id')
     .eq('task_id', taskId)
+    .eq('rater_id', raterId)
     .maybeSingle();
   return !!data;
 }
