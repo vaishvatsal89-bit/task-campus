@@ -17,6 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import { fetchTaskById, acceptTask, verifyOtp, cancelTaskWithRefund, subscribeToTask, submitRating, checkIfRated, reopenTask, doerCancelTask } from '../api';
 import { useWindowWidth } from '../hooks/useWindowWidth';
 import ChatBox from '../components/ChatBox';
+import { SkeletonDetail } from '../components/Skeleton';
 export default function TaskDetail({ showToast }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -68,13 +69,7 @@ useEffect(() => {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="page-wrap" style={{ display:'flex', justifyContent:'center', paddingTop:80 }}>
-        <div style={styles.spinner} />
-      </div>
-    );
-  }
+  if (loading) return <SkeletonDetail />;
 
   if (!task) return null;
 

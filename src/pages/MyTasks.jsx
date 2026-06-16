@@ -12,6 +12,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchMyTasks } from '../api';
+import { SkeletonList } from '../components/Skeleton';
 
 const STATUS_CONFIG = {
   open:      { label:'Open',        cls:'badge-open',   amtColor:'var(--text)'    },
@@ -110,9 +111,7 @@ export default function MyTasks({ showToast }) {
       </div>
 
       {loading ? (
-        <div style={{ display:'flex', justifyContent:'center', padding:'40px 0' }}>
-          <div style={styles.spinner} />
-        </div>
+      <SkeletonList count={4} />
       ) : sorted.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">{tab==='doing' ? '🎯' : '📋'}</div>

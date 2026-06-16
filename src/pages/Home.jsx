@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchTasks, subscribeToTasks, fetchHomeStats, searchTasks } from '../api';
 import TaskCard from '../components/TaskCard';
+import { SkeletonCard } from '../components/Skeleton';
 
 const CATEGORIES = [
   { label: 'All',        icon: '✦' },
@@ -198,11 +199,11 @@ export default function Home({ showToast }) {
           ))}
         </div>
 
-        {loading && (
-          <div style={{display:'flex',justifyContent:'center',padding:'60px 0'}}>
-            <div style={S.spinner}/>
-          </div>
-        )}
+          {loading && (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
+        {Array.from({length:6}).map((_,i) => <SkeletonCard key={i}/>)}
+        </div>
+      )}
         {!loading && error && (
           <div className="empty-state">
             <div className="empty-icon">⚠️</div>

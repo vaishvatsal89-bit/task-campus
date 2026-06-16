@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchWalletData, requestWithdrawal } from '../api';
 import { useWindowWidth } from '../hooks/useWindowWidth';
+import { SkeletonStats } from '../components/Skeleton';
 
 export default function Dashboard({ showToast }) {
   const navigate  = useNavigate();
@@ -74,13 +75,15 @@ export default function Dashboard({ showToast }) {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="page-wrap" style={{ display:'flex', justifyContent:'center', paddingTop:80 }}>
-        <div style={styles.spinner} />
-      </div>
-    );
-  }
+    if (loading) {
+  return (
+    <div className="page-wrap">
+      <div className="skel" style={{ width:200, height:28, marginBottom:8 }} />
+      <div className="skel" style={{ width:300, height:16, marginBottom:32 }} />
+      <SkeletonStats />
+    </div>
+  );
+}
      const pendingAmt = withdrawals.filter(w => w.status === 'pending').reduce((s, w) => s + w.amount, 0);
      const quickAmts  = [100, 250, 500].filter(a => a <= walletBalance);
 
