@@ -16,8 +16,9 @@ export default function Navbar({ showToast }) {
   const profileRef = useRef(null);
 
   const unread   = notifs.filter(n => !n.is_read).length;
-  const initials = profile?.name?.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase() || '?';
-
+  const initials = profile?.name
+  ? profile.name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
+  : user?.email?.[0]?.toUpperCase() || '?';
   useEffect(() => {
     if (!isLoggedIn || !user) return;
     loadNotifs();
@@ -65,8 +66,12 @@ export default function Navbar({ showToast }) {
 
   const NOTIF_ICONS = { task_accepted: '⚡', task_completed: '💰', warning: '⚠️' };
 
-  return (
-    <nav className="navbar">
+  const location = useLocation();
+const path = location.pathname;
+
+return (
+  <>
+  <nav className="navbar">
       <div className="nav-logo" onClick={() => navigate('/')}>
         <div className="bolt">⚡</div>
         TaskCampus
@@ -131,7 +136,7 @@ export default function Navbar({ showToast }) {
                 <div style={styles.dropdown(200)}>
                   {/* User info */}
                   <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
-                    <div style={{ fontSize: 14, fontWeight: 700 }}>{profile?.name}</div>
+                     <div style={{ fontSize: 14, fontWeight: 700 }}>{profile?.name || user?.email?.split('@')[0]}</div>
                     <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{user?.email}</div>
                     <div style={{ fontSize: 11, color: 'var(--amber)', marginTop: 3 }}>⭐ {profile?.rating} rating</div>
                   </div>
@@ -155,6 +160,31 @@ export default function Navbar({ showToast }) {
         )}
       </div>
     </nav>
+
+  {/* Bottom nav — mobile only */}
+  {isLoggedIn && (
+    <nav className="bottom-nav">
+      <button className={`bn-item ${path === '/' ? 'active' : ''}`} onClick={() => navigate('/')}>
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Browse
+      </button>
+      <button className={`bn-item ${path === '/post' ? 'active' : ''}`} onClick={() => navigate('/post')}>
+        <div className="bn-post-wrap">
+          <svg viewBox="0 0 24 24" style={{ stroke:'white', width:18, height:18 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        Post
+      </button>
+      <button className={`bn-item ${path === '/mytasks' ? 'active' : ''}`} onClick={() => navigate('/mytasks')}>
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        My Tasks
+      </button>
+      <button className={`bn-item ${path === '/dashboard' ? 'active' : ''}`} onClick={() => navigate('/dashboard')}>
+        <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Wallet
+      </button>
+    </nav>
+  )}
+  </>
   );
 }
 
