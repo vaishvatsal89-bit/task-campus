@@ -16,6 +16,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchTaskById, acceptTask, verifyOtp, cancelTaskWithRefund, subscribeToTask, submitRating, checkIfRated, reopenTask, doerCancelTask } from '../api';
 import { useWindowWidth } from '../hooks/useWindowWidth';
+import ChatBox from '../components/ChatBox';
 export default function TaskDetail({ showToast }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ export default function TaskDetail({ showToast }) {
   const [rating,  setRating]  = useState(0);
   const [done,    setDone]    = useState(false);
   const [hasRated, setHasRated] = useState(false);
+  const isMobile = useWindowWidth() < 640;
   /* Load task on mount */
   useEffect(() => {
   loadTask();
@@ -79,7 +81,6 @@ useEffect(() => {
   const earn      = Math.round(task.amount * 0.8);
   const isMyPost  = isLoggedIn && task.poster_id  === user?.id;
   const isMyTask  = isLoggedIn && task.doer_id    === user?.id;
-  const isMobile = useWindowWidth() < 640;
 
   const statusMap = {
   open:      { label:'Open',        cls:'badge-open'   },
@@ -372,6 +373,16 @@ async function handleReopen() {
           </div>
         )}
 
+        {/* Chat — visible to poster and doer when task is accepted or completed */}
+       {isLoggedIn && (isMyPost || isMyTask) && (task.status === 'accepted' || task.status === 'completed') && (
+       <ChatBox
+       taskId={task.id}
+       userId={user.id}
+       userName={profile?.name || user.email}
+       otherName={isMyPost ? task.doer_name : task.poster_name}
+     />
+    )}
+
 
           {/* Success */}
           {done && (
@@ -385,7 +396,7 @@ async function handleReopen() {
         </div>
 
         {/* SIDEBAR */}
-           <div style={{ ...styles.sidebar, position: isMobile ? 'static' : 'sticky', top: 80 }}>
+          <div style={{ ...styles.sidebar, position: isMobile ? 'static' : 'sticky', top: 80 }}>
           <div style={styles.actionCard}>
             <div style={{ textAlign:'center', marginBottom:18 }}>
               <div style={{ fontSize:11, color:'var(--text3)', textTransform:'uppercase', letterSpacing:'.06em' }}>You earn</div>

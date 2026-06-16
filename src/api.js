@@ -358,3 +358,31 @@ export async function searchTasks(query, category = 'All') {
   if (error) throw error;
   return data ?? [];
 }
+export async function fetchMessages(taskId) {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .eq('task_id', taskId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function sendMessage(taskId, senderId, senderName, content) {
+  const { error } = await supabase
+    .from('messages')
+    .insert({ task_id: taskId, sender_id: senderId, sender_name: senderName, content: content.trim() });
+  if (error) throw error;
+}
+
+export function subscribeToMessages(taskId, onNew) {
+  const channel = supabase
+    .channel(`messages:${taskId}`)
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'messages', filter: `task_id=eq.${taskId}` },
+      (payload) => onNew(payload.new)
+    )
+    .subscribe();
+  return () => supabase.removeChannel(channel);
+}
