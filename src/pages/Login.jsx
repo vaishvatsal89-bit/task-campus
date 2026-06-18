@@ -55,9 +55,15 @@ export default function Login({ showToast }) {
   try {
     await signUp(signupEmail, signupPassword, name, upiId);
     setSignupSent(true);
-  } catch (err) {
+    } catch (err) {
+  if (err.message?.includes('permission denied')) {
+    setError('Signup failed. Please try again.');
+  } else if (err.message?.includes('already registered')) {
+    setError('This email is already registered. Try logging in.');
+  } else {
     setError(err.message || 'Signup failed');
-  } finally {
+  }
+} finally {
     setLoading(false);
   }
 }

@@ -10,10 +10,20 @@ function assertUniversityEmail(email) {
   }
 }
 
+function assertValidUpiId(upiId) {
+  const trimmed = upiId.trim();
+  if (!trimmed) throw new Error('UPI ID is required');
+  const upiRegex = /^[a-zA-Z0-9.\-_]{3,}@[a-zA-Z]{2,}$/;
+  if (!upiRegex.test(trimmed)) {
+    throw new Error('Invalid UPI ID. Use format: yourname@upi or 9876543210@paytm');
+  }
+}
+
 /* ── AUTH ───────────────────────────────────────────────────────────────── */
 
 export async function signUp(email, password, name, upiId) {
   assertUniversityEmail(email);
+  assertValidUpiId(upiId);
 
   const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
@@ -26,9 +36,6 @@ export async function signUp(email, password, name, upiId) {
     }
   });
   if (error) throw error;
-
-  // Profile is now created automatically by the database trigger
-  // using the metadata we passed above
   return data;
 }
 
