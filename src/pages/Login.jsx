@@ -20,8 +20,7 @@ export default function Login({ showToast }) {
   const [name,          setName]          = useState('');
   const [signupEmail,   setSignupEmail]   = useState('');
   const [upiId,         setUpiId]         = useState('');
-  const [signupPassword,setSignupPassword]= useState('');
-
+  const [signupSent, setSignupSent] = useState(false);
   useEffect(() => {
     if (isLoggedIn) navigate('/');
   }, [isLoggedIn, navigate]);
@@ -34,31 +33,34 @@ export default function Login({ showToast }) {
       await signIn(loginEmail, loginPassword);
       showToast('Welcome back!', 'success');
       navigate('/');
-    } catch (err) {
-      setError(err.message || 'Login failed');
+     } catch (err) {
+  if (err.message?.toLowerCase().includes('email not confirmed')) {
+    setError('Please confirm your email first. Check your university inbox.');
+  } else {
+    setError(err.message || 'Login failed');
+  }
     } finally {
       setLoading(false);
     }
   }
 
   async function handleSignup(e) {
-    e.preventDefault();
-    setError('');
-    if (signupPassword.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
-    }
-    setLoading(true);
-    try {
-      await signUp(signupEmail, signupPassword, name, upiId);
-      showToast('Account created! You are logged in.', 'success');
-      navigate('/');
-    } catch (err) {
-      setError(err.message || 'Signup failed');
-    } finally {
-      setLoading(false);
-    }
+  e.preventDefault();
+  setError('');
+  if (signupPassword.length < 8) {
+    setError('Password must be at least 8 characters');
+    return;
   }
+  setLoading(true);
+  try {
+    await signUp(signupEmail, signupPassword, name, upiId);
+    setSignupSent(true);
+  } catch (err) {
+    setError(err.message || 'Signup failed');
+  } finally {
+    setLoading(false);
+  }
+}
 
   async function handleForgot(e) {
     e.preventDefault();
@@ -215,8 +217,28 @@ export default function Login({ showToast }) {
             )}
 
             {/* ── SIGNUP FORM ── */}
-            {tab === 'signup' && (
-              <form className="auth-form" onSubmit={handleSignup}>
+              {tab === 'signup' && signupSent ? (
+  <div style={{ textAlign:'center', padding:'8px 0' }}>
+    <div style={{ fontSize:40, marginBottom:16 }}>📧</div>
+    <h3 style={{ fontSize:17, fontWeight:700, marginBottom:8 }}>Check your email!</h3>
+    <p style={{ fontSize:14, color:'var(--text2)', marginBottom:6, lineHeight:1.6 }}>
+      We sent a confirmation link to
+    </p>
+    <p style={{ fontSize:14, fontWeight:600, color:'var(--purple2)', marginBottom:16 }}>
+      {signupEmail}
+    </p>
+    <p style={{ fontSize:13, color:'var(--text3)', marginBottom:24, lineHeight:1.6 }}>
+      Click the link in the email to activate your account, then come back to log in.
+    </p>
+    <button
+      className="btn btn-md btn-primary btn-full"
+      onClick={() => { setSignupSent(false); setTab('login'); setError(''); }}
+    >
+      Go to login
+    </button>
+  </div>
+) : tab === 'signup' && (
+  <form className="auth-form" onSubmit={handleSignup}>
                 <div className="info-box">
                   🎓 Only @{UNIVERSITY_DOMAIN} emails accepted
                 </div>

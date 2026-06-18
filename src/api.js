@@ -18,19 +18,17 @@ export async function signUp(email, password, name, upiId) {
   const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
     password,
+    options: {
+      data: {
+        name:   name.trim(),
+        upi_id: upiId.trim(),
+      }
+    }
   });
   if (error) throw error;
 
-  if (data.user) {
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: data.user.id,
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      upi_id: upiId.trim(),
-    });
-    if (profileError) throw profileError;
-  }
-
+  // Profile is now created automatically by the database trigger
+  // using the metadata we passed above
   return data;
 }
 
