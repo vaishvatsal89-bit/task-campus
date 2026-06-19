@@ -11,7 +11,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { createRazorpayOrder, verifyAndCreateTask } from '../api';
+import { createTask, createRazorpayOrder, verifyAndCreateTask, uploadTaskFile } from '../api';
 const CATEGORIES = ['Delivery', 'Study help', 'Errand', 'Tech help', 'Print job', 'Other'];
 
 export default function Post({ showToast }) {
@@ -26,8 +26,8 @@ export default function Post({ showToast }) {
   const [amount,   setAmount]   = useState('');
   const [location, setLocation] = useState('');
   const [errors,   setErrors]   = useState({});
-  const [loading,  setLoading]  = useState(false);
-
+  const [taskFile,    setTaskFile]    = useState(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const amtNum = parseInt(amount) || 0;
   const fee    = Math.round(amtNum * 0.2);
   const earn   = amtNum - fee;
@@ -68,8 +68,26 @@ async function handleSubmit(e) {
 
   try {
     // Step 1 — create Razorpay order via Edge Function
-    const { order_id, key_id } = await createRazorpayOrder(amtNum);
+       // Step 0 — upload file if attached
+    let fileUrl  = null;
+    let fileName = null;
+    if (taskFile) {
+     setUploadingFile(true);
+    try {
+    const uploaded = await uploadTaskFile(taskFile);
+    fileUrl  = uploaded.url;
+    fileName = uploaded.name;
+    } catch (err) {
+    showToast(err.message || 'File upload failed', 'error');
+    setLoading(false);
+    setUploadingFile(false);
+    return;
+  }
+  setUploadingFile(false);
+}
 
+// Step 1 — create Razorpay order via Edge Function
+const { order_id, key_id } = await createRazorpayOrder(amtNum);
     // Step 2 — open Razorpay checkout popup
     const rzp = new window.Razorpay({
       key:         key_id,
@@ -101,6 +119,8 @@ async function handleSubmit(e) {
         poster_name:     profile?.name || user.email,
         poster_initials: initials,
         poster_rating:   profile?.rating || 5.0,
+        file_url:        fileUrl,
+        file_name:       fileName,
       }
     );
     showToast('Task posted! Students are being notified. 🎉', 'success');
@@ -210,8 +230,65 @@ async function handleSubmit(e) {
             <input className="inp" placeholder="e.g. Block A Room 101" value={location} onChange={e => setLocation(e.target.value)} />
           </div>
 
+          <div className="form-group">
+  <label className="form-label">
+    Attach a file
+    <span style={{ fontSize:11, color:'var(--text3)', fontWeight:400, marginLeft:8 }}>
+      optional · PDF, image, Word · max 10MB
+    </span>
+  </label>
+
+  {!taskFile ? (
+    <label style={{
+      display:'flex', alignItems:'center', justifyContent:'center',
+      gap:10, padding:'20px', borderRadius:'var(--r2)',
+      border:'2px dashed var(--border2)', background:'var(--bg3)',
+      cursor:'pointer', color:'var(--text2)', fontSize:14,
+      transition:'border-color .15s',
+    }}>
+      <span style={{ fontSize:22 }}>📎</span>
+      <span>Click to attach a file</span>
+      <input
+        type="file"
+        accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+        style={{ display:'none' }}
+        onChange={e => {
+          const f = e.target.files?.[0];
+          if (f) setTaskFile(f);
+          e.target.value = '';
+        }}
+      />
+    </label>
+  ) : (
+    <div style={{
+      display:'flex', alignItems:'center', gap:12, padding:'12px 16px',
+      background:'var(--bg3)', border:'1px solid var(--border2)',
+      borderRadius:'var(--r2)',
+    }}>
+      <span style={{ fontSize:22 }}>
+        {taskFile.name.endsWith('.pdf') ? '📄' : taskFile.name.match(/\.(png|jpg|jpeg)$/i) ? '🖼️' : '📝'}
+      </span>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:13, fontWeight:600, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+          {taskFile.name}
+        </div>
+        <div style={{ fontSize:11, color:'var(--text3)', marginTop:2 }}>
+          {(taskFile.size / 1024 / 1024).toFixed(2)} MB
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => setTaskFile(null)}
+        style={{ background:'none', border:'none', color:'var(--text3)', cursor:'pointer', fontSize:18, padding:0 }}
+      >
+        ×
+      </button>
+    </div>
+  )}
+</div>
+
           <button className="btn btn-lg btn-primary btn-full" type="submit" disabled={loading}>
-            {loading ? 'Opening payment...' : `Pay ₹${amtNum || '—'} & Post →`}
+            {uploadingFile ? 'Uploading file...' : loading ? 'Opening payment...' : `Pay ₹${amtNum || '—'} & Post →`}
           </button>
         </form>
 

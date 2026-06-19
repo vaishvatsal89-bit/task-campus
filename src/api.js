@@ -400,3 +400,28 @@ export async function markOnTheWay(taskId, doerId) {
   if (error) throw error;
   return data;
 }
+
+export async function uploadTaskFile(file) {
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) throw new Error('File too large. Maximum size is 10MB.');
+
+  const allowed = ['pdf','png','jpg','jpeg','doc','docx'];
+  const ext     = file.name.split('.').pop().toLowerCase();
+  if (!allowed.includes(ext)) {
+    throw new Error('Only PDF, images, and Word documents are allowed.');
+  }
+
+  const path = `${crypto.randomUUID()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from('task-attachments')
+    .upload(path, file, { cacheControl:'3600', upsert:false });
+
+  if (error) throw error;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('task-attachments')
+    .getPublicUrl(path);
+
+  return { url: publicUrl, name: file.name };
+}

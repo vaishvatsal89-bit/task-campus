@@ -262,6 +262,36 @@ async function handleReopen() {
             ))}
           </div>
 
+          {/* File attachment */}
+{task.file_url && (isMyPost || isMyTask || task.status === 'open') && (
+  <div style={{
+    display:'flex', alignItems:'center', gap:14, padding:'14px 16px',
+    background:'var(--bg3)', border:'1px solid var(--border2)',
+    borderRadius:'var(--r2)', marginBottom:20,
+  }}>
+    <span style={{ fontSize:26 }}>
+      {task.file_name?.endsWith('.pdf') ? '📄'
+        : task.file_name?.match(/\.(png|jpg|jpeg)$/i) ? '🖼️'
+        : '📎'}
+    </span>
+    <div style={{ flex:1, minWidth:0 }}>
+      <div style={{ fontSize:13, fontWeight:600, marginBottom:2 }}>Attached file</div>
+      <div style={{ fontSize:12, color:'var(--text3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+        {task.file_name || 'Attachment'}
+      </div>
+     </div>
+    <a
+      href={task.file_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="btn btn-sm btn-secondary"
+      style={{ flexShrink:0, textDecoration:'none' }}
+    >
+      ↓ Download
+    </a>
+  </div>
+)}
+
           {/* Poster info */}
           <div className="section-label" style={{ marginTop:20 }}>Posted by</div>
           <div style={styles.posterCard}>
