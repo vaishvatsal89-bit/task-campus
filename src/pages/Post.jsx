@@ -26,6 +26,7 @@ export default function Post({ showToast }) {
   const [amount,   setAmount]   = useState('');
   const [location, setLocation] = useState('');
   const [errors,   setErrors]   = useState({});
+  const [loading,   setLoading] = useState(false);
   const [taskFile,    setTaskFile]    = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const amtNum = parseInt(amount) || 0;
