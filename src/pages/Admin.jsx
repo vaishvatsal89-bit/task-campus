@@ -6,7 +6,7 @@ import {
   fetchBannedUsers, adminUpdateWithdrawal, adminUnbanUser
 } from '../api';
 
-const ADMIN_EMAIL = 'vaishvatsal89@gmail.com';
+const ADMIN_EMAIL = 'vatsal.25SCSE1010219@galgotiasuniversity.ac.in';
 
 export default function Admin({ showToast }) {
   const navigate = useNavigate();
