@@ -20,6 +20,7 @@ export default function Login({ showToast }) {
   const [name,          setName]          = useState('');
   const [signupEmail,   setSignupEmail]   = useState('');
   const [upiId,         setUpiId]         = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
   const [signupSent, setSignupSent] = useState(false);
   useEffect(() => {
     if (isLoggedIn) navigate('/');
@@ -63,7 +64,7 @@ export default function Login({ showToast }) {
   } else {
     setError(err.message || 'Signup failed');
   }
-} finally {
+  } finally {
     setLoading(false);
   }
 }
