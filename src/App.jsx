@@ -17,6 +17,7 @@ import Footer  from './components/Footer';
 import Profile from './pages/Profile';
 import { useTaskNotifications } from './hooks/useTaskNotifications';
 import ResetPassword from './pages/ResetPassword';
+import Admin from './pages/Admin';
 
 function Toast({ message, type, duration, onDone }) {
   const [visible, setVisible] = useState(false);
@@ -65,6 +66,7 @@ function Toast({ message, type, duration, onDone }) {
       <Route path="/refund"    element={<Refund />} />
       <Route path="/profile" element={<Profile showToast={showToast} />} />
       <Route path="/reset-password" element={<ResetPassword showToast={showToast} />} />
+      <Route path="/admin" element={<Admin showToast={showToast} />} />
     </Routes>
  m    <Footer />
       {toast && (

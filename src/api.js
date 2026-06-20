@@ -425,3 +425,50 @@ export async function uploadTaskFile(file) {
 
   return { url: publicUrl, name: file.name };
 }
+export async function fetchAdminStats(adminEmail) {
+  const { data, error } = await supabase.rpc('get_admin_stats', {
+    p_admin_email: adminEmail
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchPendingWithdrawals() {
+  const { data, error } = await supabase
+    .from('withdrawal_requests')
+    .select('*, profiles(name, email)')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchBannedUsers() {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name, email, warning_count, banned_until')
+    .not('banned_until', 'is', null)
+    .gt('banned_until', new Date().toISOString())
+    .order('banned_until', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function adminUpdateWithdrawal(withdrawalId, status, adminEmail) {
+  const { data, error } = await supabase.rpc('admin_update_withdrawal', {
+    p_withdrawal_id: withdrawalId,
+    p_status:        status,
+    p_admin_email:   adminEmail,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function adminUnbanUser(userId, adminEmail) {
+  const { data, error } = await supabase.rpc('admin_unban_user', {
+    p_user_id:     userId,
+    p_admin_email: adminEmail,
+  });
+  if (error) throw error;
+  return data;
+}
