@@ -425,9 +425,9 @@ export async function uploadTaskFile(file) {
 
   return { url: publicUrl, name: file.name };
 }
-export async function fetchAdminStats(adminEmail) {
+export async function fetchAdminStats(userId) {
   const { data, error } = await supabase.rpc('get_admin_stats', {
-    p_admin_email: adminEmail
+    p_user_id: userId
   });
   if (error) throw error;
   return data;
@@ -454,20 +454,20 @@ export async function fetchBannedUsers() {
   return data ?? [];
 }
 
-export async function adminUpdateWithdrawal(withdrawalId, status, adminEmail) {
+export async function adminUpdateWithdrawal(withdrawalId, status, userId) {
   const { data, error } = await supabase.rpc('admin_update_withdrawal', {
     p_withdrawal_id: withdrawalId,
     p_status:        status,
-    p_admin_email:   adminEmail,
+    p_user_id:       userId,
   });
   if (error) throw error;
   return data;
 }
 
-export async function adminUnbanUser(userId, adminEmail) {
+export async function adminUnbanUser(targetUserId, adminUserId) {
   const { data, error } = await supabase.rpc('admin_unban_user', {
-    p_user_id:     userId,
-    p_admin_email: adminEmail,
+    p_user_id:  targetUserId,
+    p_admin_id: adminUserId,
   });
   if (error) throw error;
   return data;

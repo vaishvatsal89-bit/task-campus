@@ -6,8 +6,6 @@ import {
   fetchBannedUsers, adminUpdateWithdrawal, adminUnbanUser
 } from '../api';
 
-const ADMIN_EMAIL = 'vatsal.25SCSE1010219@galgotiasuniversity.ac.in';
-
 export default function Admin({ showToast }) {
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
@@ -19,8 +17,7 @@ export default function Admin({ showToast }) {
   const [loading,      setLoading]      = useState(true);
   const [acting,       setActing]       = useState(null);
 
-  const isAdmin = isLoggedIn && user?.email === ADMIN_EMAIL;
-
+  const isAdmin = isLoggedIn && profile?.is_admin === true;
   useEffect(() => {
     if (!isAdmin) return;
     loadAll();
@@ -30,7 +27,7 @@ export default function Admin({ showToast }) {
     setLoading(true);
     try {
       const [s, w, b] = await Promise.all([
-        fetchAdminStats(ADMIN_EMAIL),
+        fetchAdminStats(user.id),
         fetchPendingWithdrawals(),
         fetchBannedUsers(),
       ]);
@@ -47,7 +44,7 @@ export default function Admin({ showToast }) {
   async function handleWithdrawal(id, status) {
     setActing(id);
     try {
-      const result = await adminUpdateWithdrawal(id, status, ADMIN_EMAIL);
+      const result = await adminUpdateWithdrawal(id, status,user.id);
       if (result.success) {
         showToast(status === 'paid' ? '✓ Marked as paid' : '✕ Rejected & refunded', 'success');
         setWithdrawals(prev => prev.filter(w => w.id !== id));
@@ -63,7 +60,7 @@ export default function Admin({ showToast }) {
   async function handleUnban(userId, name) {
     setActing(userId);
     try {
-      const result = await adminUnbanUser(userId, ADMIN_EMAIL);
+      const result = await adminUnbanUser(userId,user.id);
       if (result.success) {
         showToast(`${name} unbanned`, 'success');
         setBannedUsers(prev => prev.filter(u => u.id !== userId));
@@ -94,7 +91,7 @@ export default function Admin({ showToast }) {
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:28 }}>
         <div>
           <h1 style={{ fontSize:26, fontWeight:700, marginBottom:4 }}>Admin Panel</h1>
-          <p style={{ fontSize:13, color:'var(--text3)' }}>TaskCampus · {ADMIN_EMAIL}</p>
+          <p style={{ fontSize:13, color:'var(--text3)' }}>TaskCampus · {user?.email}</p>
         </div>
         <button className="btn btn-sm btn-secondary" onClick={loadAll}>↻ Refresh</button>
       </div>
