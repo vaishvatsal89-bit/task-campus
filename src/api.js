@@ -436,11 +436,24 @@ export async function fetchAdminStats(userId) {
 export async function fetchPendingWithdrawals() {
   const { data, error } = await supabase
     .from('withdrawal_requests')
-    .select('*, profiles(name, email)')
+    .select('*')
     .eq('status', 'pending')
     .order('created_at', { ascending: true });
   if (error) throw error;
-  return data ?? [];
+
+  if (!data || data.length === 0) return [];
+
+  // Fetch profile info separately
+  const userIds = [...new Set(data.map(w => w.user_id))];
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, name, email')
+    .in('id', userIds);
+
+  return data.map(w => ({
+    ...w,
+    profiles: profiles?.find(p => p.id === w.user_id) || null
+  }));
 }
 
 export async function fetchBannedUsers() {
