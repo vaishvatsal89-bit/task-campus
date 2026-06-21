@@ -8,8 +8,7 @@ import {
 
 export default function Admin({ showToast }) {
   const navigate = useNavigate();
-  const { user, isLoggedIn } = useAuth();
-
+  const { user, profile, isLoggedIn } = useAuth();
   const [tab,          setTab]          = useState('overview');
   const [stats,        setStats]        = useState(null);
   const [withdrawals,  setWithdrawals]  = useState([]);
