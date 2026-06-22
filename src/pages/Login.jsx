@@ -22,6 +22,7 @@ export default function Login({ showToast }) {
   const [upiId,         setUpiId]         = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupSent, setSignupSent] = useState(false);
+  const [refCode, setRefCode] = useState('');
   useEffect(() => {
     if (isLoggedIn) navigate('/');
   }, [isLoggedIn, navigate]);
@@ -54,7 +55,7 @@ export default function Login({ showToast }) {
   }
   setLoading(true);
   try {
-    await signUp(signupEmail, signupPassword, name, upiId);
+    await signUp(signupEmail, signupPassword, name, upiId, refCode);
     setSignupSent(true);
     } catch (err) {
   if (err.message?.includes('permission denied')) {
@@ -182,6 +183,21 @@ export default function Login({ showToast }) {
                     required
                   />
                 </div>
+
+                <div className="form-group">
+                <label className="form-label">
+                 Referral code
+                <span style={{ fontSize:11, color:'var(--text3)', fontWeight:400, marginLeft:8 }}>
+                 optional · both get ₹20
+              </span>
+               </label>
+               <input
+               className="inp"
+               placeholder="e.g. TC8X2KM9"
+               value={refCode}
+               onChange={e => setRefCode(e.target.value.toUpperCase().slice(0, 8))}
+               />
+            </div>
 
                 <div className="form-group">
                   <label className="form-label">Password</label>

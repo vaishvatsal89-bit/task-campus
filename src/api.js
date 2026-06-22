@@ -3,8 +3,8 @@ import { supabase } from './supabase';
 const UNIVERSITY_DOMAIN =
   import.meta.env.VITE_UNIVERSITY_DOMAIN || 'university.edu';
 
-function assertUniversityEmail(email) {
-  const normalized = email.trim().toLowerCase();
+  function assertUniversityEmail(email) {
+   const normalized = email.trim().toLowerCase();
   if (!normalized.endsWith(`@${UNIVERSITY_DOMAIN}`)) {
     throw new Error(`Only @${UNIVERSITY_DOMAIN} emails are allowed`);
   }
@@ -21,7 +21,7 @@ function assertValidUpiId(upiId) {
 
 /* ── AUTH ───────────────────────────────────────────────────────────────── */
 
-export async function signUp(email, password, name, upiId) {
+export async function signUp(email, password, name, upiId, referralCode = '') {
   assertUniversityEmail(email);
   assertValidUpiId(upiId);
 
@@ -30,8 +30,9 @@ export async function signUp(email, password, name, upiId) {
     password,
     options: {
       data: {
-        name:   name.trim(),
-        upi_id: upiId.trim(),
+        name:          name.trim(),
+        upi_id:        upiId.trim(),
+        referral_code: referralCode.trim().toUpperCase(),
       }
     }
   });

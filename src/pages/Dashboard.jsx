@@ -120,6 +120,41 @@ export default function Dashboard({ showToast }) {
         </div>
 
       </div>
+           {/* Referral card */}
+      <div style={{
+        background:'var(--purple-bg)', border:'1px solid var(--purple-br)',
+        borderRadius:'var(--r2)', padding:'20px 24px', marginBottom:28,
+        display:'flex', alignItems:'center', justifyContent:'space-between',
+        gap:16, flexWrap:'wrap',
+      }}>
+        <div>
+          <div style={{ fontSize:14, fontWeight:700, marginBottom:4 }}>
+            🎁 Invite friends — both earn ₹20
+          </div>
+          <div style={{ fontSize:13, color:'var(--text2)' }}>
+            Share your code. They sign up. You both get ₹20 instantly.
+          </div>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+          <div style={{
+            fontFamily:'var(--mono)', fontSize:20, fontWeight:700,
+            letterSpacing:4, color:'var(--purple2)',
+            background:'var(--bg2)', border:'1px solid var(--purple-br)',
+            borderRadius:'var(--r)', padding:'10px 18px',
+          }}>
+            {profile?.referral_code || '—'}
+          </div>
+          <button
+            className="btn btn-md btn-primary"
+            onClick={() => {
+              navigator.clipboard.writeText(profile?.referral_code || '');
+              showToast('Referral code copied!', 'success');
+            }}
+          >
+            Copy
+          </button>
+        </div>
+      </div>
 
         <div style={{ ...styles.layout, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
         {/* LEFT col */}
