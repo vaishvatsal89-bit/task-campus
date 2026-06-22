@@ -122,6 +122,8 @@ const { order_id, key_id } = await createRazorpayOrder(amtNum);
         poster_rating:   profile?.rating || 5.0,
         file_url:        fileUrl,
         file_name:       fileName,
+        university_id:   profile?.university_id   || null,
+        university_name: profile?.university_name || null,
       }
     );
     showToast('Task posted! Students are being notified. 🎉', 'success');

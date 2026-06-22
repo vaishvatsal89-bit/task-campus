@@ -3,10 +3,24 @@ import { supabase } from './supabase';
 const UNIVERSITY_DOMAIN =
   import.meta.env.VITE_UNIVERSITY_DOMAIN || 'university.edu';
 
-  function assertUniversityEmail(email) {
-   const normalized = email.trim().toLowerCase();
-  if (!normalized.endsWith(`@${UNIVERSITY_DOMAIN}`)) {
-    throw new Error(`Only @${UNIVERSITY_DOMAIN} emails are allowed`);
+     let _cachedDomains = null;
+
+async function assertUniversityEmail(email) {
+  const domain = email.trim().toLowerCase().split('@')[1];
+  if (!domain) throw new Error('Invalid email address');
+
+  if (!_cachedDomains) {
+    const { data } = await supabase
+      .from('universities')
+      .select('domain')
+      .eq('active', true);
+    _cachedDomains = (data || []).map(u => u.domain);
+  }
+
+  if (!_cachedDomains.includes(domain)) {
+    throw new Error(
+      `Only university emails are accepted. Your domain (@${domain}) is not yet supported.`
+    );
   }
 }
 
@@ -21,8 +35,8 @@ function assertValidUpiId(upiId) {
 
 /* ── AUTH ───────────────────────────────────────────────────────────────── */
 
-export async function signUp(email, password, name, upiId, referralCode = '') {
-  assertUniversityEmail(email);
+  export async function signUp(email, password, name, upiId, referralCode = '') {
+  await assertUniversityEmail(email);
   assertValidUpiId(upiId);
 
   const { data, error } = await supabase.auth.signUp({
@@ -66,7 +80,7 @@ export async function getProfile(userId) {
 
 /* ── TASKS ──────────────────────────────────────────────────────────────── */
 
-export async function fetchTasks(category = 'All') {
+  export async function fetchTasks(category = 'All', universityId = null) {
   const now = new Date().toISOString();
 
   let query = supabase
@@ -79,7 +93,7 @@ export async function fetchTasks(category = 'All') {
   if (category && category !== 'All') {
     query = query.eq('category', category);
   }
-
+  if (universityId) query = query.eq('university_id', universityId);
   const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
@@ -348,7 +362,7 @@ export async function cancelTaskWithRefund(taskId) {
   if (data.error) throw new Error(data.error);
   return data;
 }
-export async function searchTasks(query, category = 'All') {
+  export async function searchTasks(query, category = 'All', universityId = null) {
   const now = new Date().toISOString();
 
   let q = supabase
@@ -360,6 +374,7 @@ export async function searchTasks(query, category = 'All') {
     .order('created_at', { ascending: false });
 
   if (category !== 'All') q = q.eq('category', category);
+  if (universityId) query = query.eq('university_id', universityId);
 
   const { data, error } = await q;
   if (error) throw error;
@@ -482,6 +497,35 @@ export async function adminUnbanUser(targetUserId, adminUserId) {
   const { data, error } = await supabase.rpc('admin_unban_user', {
     p_user_id:  targetUserId,
     p_admin_id: adminUserId,
+  });
+  if (error) throw error;
+  return data;
+}
+export async function fetchUniversities() {
+  const { data, error } = await supabase
+    .from('universities')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function adminAddUniversity(adminId, name, domain, city) {
+  const { data, error } = await supabase.rpc('admin_add_university', {
+    p_admin_id: adminId,
+    p_name:     name,
+    p_domain:   domain,
+    p_city:     city,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function adminToggleUniversity(adminId, universityId, active) {
+  const { data, error } = await supabase.rpc('admin_toggle_university', {
+    p_admin_id:      adminId,
+    p_university_id: universityId,
+    p_active:        active,
   });
   if (error) throw error;
   return data;

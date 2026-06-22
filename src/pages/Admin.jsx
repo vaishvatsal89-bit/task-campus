@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   fetchAdminStats, fetchPendingWithdrawals,
-  fetchBannedUsers, adminUpdateWithdrawal, adminUnbanUser
+  fetchBannedUsers, adminUpdateWithdrawal, adminUnbanUser,fetchUniversities, adminAddUniversity, adminToggleUniversity
 } from '../api';
 
 export default function Admin({ showToast }) {
@@ -15,6 +15,11 @@ export default function Admin({ showToast }) {
   const [bannedUsers,  setBannedUsers]  = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [acting,       setActing]       = useState(null);
+  const [universities,  setUniversities]  = useState([]);
+  const [newUniName,    setNewUniName]    = useState('');
+  const [newUniDomain,  setNewUniDomain]  = useState('');
+  const [newUniCity,    setNewUniCity]    = useState('');
+  const [addingUni,     setAddingUni]     = useState(false);
 
   const isAdmin = isLoggedIn && profile?.is_admin === true;
   useEffect(() => {
@@ -25,14 +30,16 @@ export default function Admin({ showToast }) {
   async function loadAll() {
     setLoading(true);
     try {
-      const [s, w, b] = await Promise.all([
-        fetchAdminStats(user.id),
-        fetchPendingWithdrawals(),
-        fetchBannedUsers(),
+       const [s, w, b, u] = await Promise.all([
+       fetchAdminStats(user.id),
+       fetchPendingWithdrawals(),
+       fetchBannedUsers(),
+       fetchUniversities(),
       ]);
       setStats(s);
       setWithdrawals(w);
       setBannedUsers(b);
+      setUniversities(u);
     } catch {
       showToast('Failed to load admin data', 'error');
     } finally {
@@ -101,6 +108,7 @@ export default function Admin({ showToast }) {
           { key:'overview',    label:'📊 Overview' },
           { key:'withdrawals', label:`💸 Withdrawals ${withdrawals.length > 0 ? `(${withdrawals.length})` : ''}` },
           { key:'users',       label:`⚠️ Banned Users ${bannedUsers.length > 0 ? `(${bannedUsers.length})` : ''}` },
+          { key:'universities', label:`🏫 Universities (${universities.length})` },
         ].map(t => (
           <button key={t.key}
             style={{ ...S.tab, ...(tab === t.key ? S.tabActive : {}) }}
@@ -220,6 +228,87 @@ export default function Admin({ showToast }) {
                       onClick={() => handleUnban(u.id, u.name)}
                     >
                       {acting === u.id ? 'Unbanning...' : 'Unban'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* UNIVERSITIES */}
+          {tab === 'universities' && (
+            <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+
+              {/* Add new */}
+              <div style={S.card}>
+                <h3 style={{ fontSize:15, fontWeight:700, marginBottom:16 }}>Add University</h3>
+                <div className="grid-3" style={{ marginBottom:12 }}>
+                  <div className="form-group">
+                    <label className="form-label">University Name</label>
+                    <input className="inp" placeholder="Amity University"
+                      value={newUniName} onChange={e => setNewUniName(e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Email Domain</label>
+                    <input className="inp" placeholder="amity.edu"
+                      value={newUniDomain} onChange={e => setNewUniDomain(e.target.value.toLowerCase())} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">City</label>
+                    <input className="inp" placeholder="Noida"
+                      value={newUniCity} onChange={e => setNewUniCity(e.target.value)} />
+                  </div>
+                </div>
+                <button
+                  className="btn btn-md btn-primary"
+                  disabled={addingUni || !newUniName || !newUniDomain}
+                  onClick={async () => {
+                    setAddingUni(true);
+                    try {
+                      const r = await adminAddUniversity(user.id, newUniName, newUniDomain, newUniCity);
+                      if (r.success) {
+                        showToast(`${newUniName} added!`, 'success');
+                        setNewUniName(''); setNewUniDomain(''); setNewUniCity('');
+                        const u = await fetchUniversities();
+                        setUniversities(u);
+                      }
+                    } catch { showToast('Failed to add', 'error'); }
+                    finally { setAddingUni(false); }
+                  }}
+                >
+                  {addingUni ? 'Adding...' : '+ Add University'}
+                </button>
+              </div>
+
+              {/* List */}
+              {universities.map(u => (
+                <div key={u.id} style={S.card}>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
+                    <div>
+                      <div style={{ fontSize:15, fontWeight:700, marginBottom:4 }}>
+                        {u.name}
+                        {u.active
+                          ? <span style={{ marginLeft:8, fontSize:11, color:'var(--green)', background:'var(--green-bg)', border:'1px solid var(--green-br)', borderRadius:20, padding:'2px 8px' }}>Active</span>
+                          : <span style={{ marginLeft:8, fontSize:11, color:'#f87171', background:'rgba(239,68,68,.1)', border:'1px solid rgba(239,68,68,.3)', borderRadius:20, padding:'2px 8px' }}>Inactive</span>
+                        }
+                      </div>
+                      <div style={{ fontSize:13, color:'var(--purple2)', fontWeight:600 }}>@{u.domain}</div>
+                      {u.city && <div style={{ fontSize:12, color:'var(--text3)', marginTop:2 }}>{u.city}</div>}
+                    </div>
+                    <button
+                      className="btn btn-md"
+                      style={u.active
+                        ? { background:'rgba(239,68,68,.1)', color:'#f87171', border:'1px solid rgba(239,68,68,.3)' }
+                        : { background:'rgba(16,185,129,.1)', color:'var(--green)', border:'1px solid rgba(16,185,129,.3)' }
+                      }
+                      onClick={async () => {
+                        try {
+                          await adminToggleUniversity(user.id, u.id, !u.active);
+                          setUniversities(prev => prev.map(x => x.id === u.id ? { ...x, active: !x.active } : x));
+                          showToast(u.active ? 'University deactivated' : 'University activated', 'success');
+                        } catch { showToast('Failed', 'error'); }
+                      }}
+                    >
+                      {u.active ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
                 </div>

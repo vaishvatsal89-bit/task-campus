@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchTasks, subscribeToTasks, fetchHomeStats, searchTasks } from '../api';
 import TaskCard from '../components/TaskCard';
 import { SkeletonCard } from '../components/Skeleton';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = [
   { label: 'All',        icon: '✦' },
@@ -39,6 +40,7 @@ function CountUp({ to, prefix = '', suffix = '' }) {
 
 export default function Home({ showToast }) {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [tasks,        setTasks]        = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
   const [loading,      setLoading]      = useState(true);
@@ -64,16 +66,16 @@ export default function Home({ showToast }) {
     const timer = setTimeout(async () => {
       if (!searchQuery.trim()) { loadTasks(); return; }
       setLoading(true); setError(null);
-      try   { setTasks(await searchTasks(searchQuery.trim(), activeFilter)); }
+      try   { setTasks(await searchTasks(searchQuery.trim(), activeFilter, profile?.university_id)); }
       catch { setError('Search failed. Try again.'); }
       finally { setLoading(false); }
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery, activeFilter]);
 
-  async function loadTasks() {
-    setLoading(true); setError(null);
-    try   { setTasks(await fetchTasks(activeFilter)); }
+    async function loadTasks() {
+   setLoading(true); setError(null);
+   try { setTasks(await fetchTasks(activeFilter, profile?.university_id)); } 
     catch { setError('Could not load tasks. Check your connection.'); }
     finally { setLoading(false); }
   }
