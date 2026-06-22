@@ -23,6 +23,7 @@ export default function Login({ showToast }) {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupSent, setSignupSent] = useState(false);
   const [refCode, setRefCode] = useState('');
+  const [refCode, setRefCode] = useState('');
   useEffect(() => {
     if (isLoggedIn) navigate('/');
   }, [isLoggedIn, navigate]);
@@ -263,8 +264,8 @@ export default function Login({ showToast }) {
 ) : tab === 'signup' && (
   <form className="auth-form" onSubmit={handleSignup}>
                 <div className="info-box">
-  🎓 Only verified university emails are accepted
-</div>
+                🎓 Only verified university emails are accepted
+               </div>
 
                 <div className="form-group">
                   <label className="form-label">Full Name</label>
