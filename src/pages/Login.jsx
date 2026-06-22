@@ -23,7 +23,6 @@ export default function Login({ showToast }) {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupSent, setSignupSent] = useState(false);
   const [refCode, setRefCode] = useState('');
-  const [refCode, setRefCode] = useState('');
   useEffect(() => {
     if (isLoggedIn) navigate('/');
   }, [isLoggedIn, navigate]);
