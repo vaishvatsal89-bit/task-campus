@@ -345,7 +345,7 @@ export async function fetchHomeStats() {
 export async function sendPasswordReset(email) {
   const { error } = await supabase.auth.resetPasswordForEmail(
     email.trim(),
-    { redirectTo: 'https://task-campus-three.vercel.app/reset-password' }
+    { redirectTo: 'https://taskcampus.in/reset-password' }
   );
   if (error) throw error;
 }
