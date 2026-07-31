@@ -163,35 +163,16 @@ async function getSuggestedPrice() {
   setAiLoading(true);
   setAiPrice(null);
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 150,
-        messages: [{
-          role: 'user',
-          content: `You are a pricing assistant for a campus task marketplace in India where college students post tasks for other students to complete for money.
-
-Task title: ${title.trim()}
-Description: ${desc.trim()}
-Category: ${category}
-Deadline: ${deadline}
-
-Suggest a fair price in Indian Rupees (₹). Consider:
-- This is a small campus task between students
-- Minimum is ₹30, typical tasks are ₹50-300
-- Factor in effort, time, and urgency
-
-Respond ONLY in this exact JSON format with no other text:
-{"min": 80, "max": 120, "reason": "One line explanation"}`
-        }]
-      })
+    const { data, error } = await supabase.functions.invoke('ai-price-suggest', {
+      body: {
+        title:       title.trim(),
+        description: desc.trim(),
+        category,
+        deadline,
+      }
     });
-    const data = await response.json();
-    const text = data.content?.[0]?.text || '';
-    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
-    setAiPrice(parsed);
+    if (error) throw error;
+    setAiPrice(data);
   } catch {
     showToast('Could not get AI suggestion', 'error');
   } finally {
