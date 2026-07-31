@@ -32,6 +32,8 @@ export default function Post({ showToast }) {
   const amtNum = parseInt(amount) || 0;
   const fee    = Math.round(amtNum * 0.2);
   const earn   = amtNum - fee;
+  const [aiPrice,      setAiPrice]      = useState(null);
+  const [aiLoading,    setAiLoading]    = useState(false);
 
   function getExpiresAt(preset) {
   const now = Date.now();
@@ -153,6 +155,49 @@ const { order_id, key_id } = await createRazorpayOrder(amtNum);
     setLoading(false);
   }
 }
+async function getSuggestedPrice() {
+  if (!title.trim() || !desc.trim()) {
+    showToast('Fill in title and description first', 'error');
+    return;
+  }
+  setAiLoading(true);
+  setAiPrice(null);
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 150,
+        messages: [{
+          role: 'user',
+          content: `You are a pricing assistant for a campus task marketplace in India where college students post tasks for other students to complete for money.
+
+Task title: ${title.trim()}
+Description: ${desc.trim()}
+Category: ${category}
+Deadline: ${deadline}
+
+Suggest a fair price in Indian Rupees (₹). Consider:
+- This is a small campus task between students
+- Minimum is ₹30, typical tasks are ₹50-300
+- Factor in effort, time, and urgency
+
+Respond ONLY in this exact JSON format with no other text:
+{"min": 80, "max": 120, "reason": "One line explanation"}`
+        }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    setAiPrice(parsed);
+  } catch {
+    showToast('Could not get AI suggestion', 'error');
+  } finally {
+    setAiLoading(false);
+  }
+}
 
   return (
     <div className="page-wrap">
@@ -225,7 +270,61 @@ const { order_id, key_id } = await createRazorpayOrder(amtNum);
               placeholder="150" value={amount}
               onChange={e => { setAmount(e.target.value); setErrors({}); }} />
             {errors.amount && <span style={styles.err}>{errors.amount}</span>}
-            <span style={{ fontSize:11, color:'var(--text3)' }}>Fair pay = faster acceptance.</span>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:6 }}>
+  <span style={{ fontSize:11, color:'var(--text3)' }}>Fair pay = faster acceptance.</span>
+  <button
+    type="button"
+    onClick={getSuggestedPrice}
+    disabled={aiLoading || !title.trim() || !desc.trim()}
+    style={{
+      background:'var(--purple-bg)', border:'1px solid var(--purple-br)',
+      borderRadius:8, padding:'4px 12px', fontSize:12, fontWeight:600,
+      color:'var(--purple2)', cursor:'pointer', fontFamily:'var(--font)',
+      opacity: (!title.trim() || !desc.trim()) ? 0.5 : 1,
+      transition:'opacity .15s',
+    }}
+  >
+    {aiLoading ? '✨ Thinking...' : '✨ Suggest price'}
+  </button>
+</div>
+
+{aiPrice && (
+  <div style={{
+    marginTop:10, padding:'12px 14px',
+    background:'var(--purple-bg)', border:'1px solid var(--purple-br)',
+    borderRadius:'var(--r2)',
+  }}>
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 }}>
+      <div style={{ fontSize:13, fontWeight:700, color:'var(--purple2)' }}>
+        ✨ AI suggests: ₹{aiPrice.min}–₹{aiPrice.max}
+      </div>
+      <div style={{ display:'flex', gap:6 }}>
+        <button
+          type="button"
+          onClick={() => { setAmount(String(aiPrice.min)); setAiPrice(null); }}
+          style={{ padding:'3px 10px', borderRadius:6, fontSize:12, fontWeight:600, border:'1px solid var(--purple-br)', background:'var(--bg2)', color:'var(--purple2)', cursor:'pointer' }}
+        >
+          ₹{aiPrice.min}
+        </button>
+        <button
+          type="button"
+          onClick={() => { setAmount(String(Math.round((aiPrice.min + aiPrice.max) / 2))); setAiPrice(null); }}
+          style={{ padding:'3px 10px', borderRadius:6, fontSize:12, fontWeight:600, border:'none', background:'var(--purple)', color:'white', cursor:'pointer' }}
+        >
+          ₹{Math.round((aiPrice.min + aiPrice.max) / 2)} (mid)
+        </button>
+        <button
+          type="button"
+          onClick={() => { setAmount(String(aiPrice.max)); setAiPrice(null); }}
+          style={{ padding:'3px 10px', borderRadius:6, fontSize:12, fontWeight:600, border:'1px solid var(--purple-br)', background:'var(--bg2)', color:'var(--purple2)', cursor:'pointer' }}
+        >
+          ₹{aiPrice.max}
+        </button>
+      </div>
+    </div>
+    <div style={{ fontSize:12, color:'var(--text2)' }}>💡 {aiPrice.reason}</div>
+  </div>
+)}
           </div>
 
           <div className="form-group">
