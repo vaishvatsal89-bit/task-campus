@@ -12,6 +12,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { createTask, createRazorpayOrder, verifyAndCreateTask, uploadTaskFile } from '../api';
+import { supabase } from '../supabase';
 const CATEGORIES = ['Delivery', 'Study help', 'Errand', 'Tech help', 'Print job', 'Other'];
 
 export default function Post({ showToast }) {
