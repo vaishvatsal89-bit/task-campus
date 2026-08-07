@@ -11,7 +11,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { createTask, createRazorpayOrder, verifyAndCreateTask, uploadTaskFile } from '../api';
+import { createRazorpayOrder, verifyAndCreateTask, uploadTaskFile } from '../api';
 import { supabase } from '../supabase';
 const CATEGORIES = ['Delivery', 'Study help', 'Errand', 'Tech help', 'Print job', 'Other'];
 
@@ -49,8 +49,7 @@ export default function Post({ showToast }) {
   }
   return null;
 }
-
-async function handleSubmit(e) {
+  async function handleSubmit(e) {
   e.preventDefault();
 
   if (!isLoggedIn) {
@@ -67,22 +66,21 @@ async function handleSubmit(e) {
 
   setLoading(true);
 
-  const initials = (profile?.name || user.email)
-    .split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+const initials = (profile?.name || user.email)
+  .split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
 
+// Upload file first if one was attached
+let fileUrl  = null;
+let fileName = null;
+
+if (taskFile) {
+  setUploadingFile(true);
   try {
-    // Step 1 — create Razorpay order via Edge Function
-       // Step 0 — upload file if attached
-    let fileUrl  = null;
-    let fileName = null;
-    if (taskFile) {
-     setUploadingFile(true);
-    try {
-    const uploaded = await uploadTaskFile(taskFile);
-    fileUrl  = uploaded.url;
-    fileName = uploaded.name;
-    } catch (err) {
-    showToast(err.message || 'File upload failed', 'error');
+    const result = await uploadTaskFile(taskFile, user.id);
+    fileUrl  = result.url;
+    fileName = result.name;
+  } catch (err) {
+    showToast('File upload failed. Try again.', 'error');
     setLoading(false);
     setUploadingFile(false);
     return;
@@ -90,72 +88,68 @@ async function handleSubmit(e) {
   setUploadingFile(false);
 }
 
-// Step 1 — create Razorpay order via Edge Function
-const { order_id, key_id } = await createRazorpayOrder(amtNum);
-    // Step 2 — open Razorpay checkout popup
-    const rzp = new window.Razorpay({
-      key:         key_id,
-      amount:      amtNum * 100,
-      currency:    'INR',
-      name:        'TaskCampus',
-      description: title.trim(),
-      order_id:    order_id,
-      prefill: {
-        email: user.email,
-        name:  profile?.name || '',
-      },
-      theme: { color: '#8B7CF8' },
+const taskData = {
+  title:           title.trim(),
+  description:     desc.trim() + (location ? ` | Location: ${location}` : ''),
+  category,
+  amount:          amtNum,
+  deadline:        deadline || '1 hr',
+  expires_at:      getExpiresAt(deadline),
+  poster_id:       user.id,
+  poster_name:     profile?.name || user.email,
+  poster_initials: initials,
+  poster_rating:   profile?.rating || 5.0,
+  file_url:        fileUrl,
+  file_name:       fileName,
+};
 
-      // Step 3 — payment done → create task
-       handler: async function (response) {
-  try {
-    await verifyAndCreateTask(
-      response.razorpay_payment_id,
-      response.razorpay_order_id,
-      response.razorpay_signature,
-      {
-        title:           title.trim(),
-        description:     desc.trim() + (location ? ` | Location: ${location}` : ''),
-        category,
-        amount:          amtNum,
-        deadline:        deadline,
-        expires_at:      getExpiresAt(deadline),
-        poster_name:     profile?.name || user.email,
-        poster_initials: initials,
-        poster_rating:   profile?.rating || 5.0,
-        file_url:        fileUrl,
-        file_name:       fileName,
-        university_id:   profile?.university_id   || null,
-        university_name: profile?.university_name || null,
-      }
-    );
-    showToast('Task posted! Students are being notified. 🎉', 'success');
-    navigate('/');
-  } catch (err) {
-    showToast(
-      err.message || 'Verification failed. Email vaishvatsal89@gmail.com',
-      'error', 6000
-    );
-  } finally {
-    setLoading(false);
-  }
-},
+// Step 1 — create Razorpay order on backend
+const order = await createRazorpayOrder(amtNum);
+
+    // Step 2 — open Razorpay payment popup
+    const options = {
+      key:         import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount:      order.amount,
+      currency:    order.currency,
+      order_id:    order.order_id,
+      name:        'TaskCampus',
+      description: `Pay for: ${title}`,
+      theme:       { color: '#8b7cf8' },
+
+      handler: async function (response) {
+        // Step 3 — payment done, verify and create task on backend
+        try {
+          await verifyAndCreateTask({
+            razorpay_order_id:   response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature:  response.razorpay_signature,
+            taskData,
+          });
+          showToast('Task posted! Students are being notified.', 'success');
+          navigate('/');
+        } catch (err) {
+          showToast(err.message || 'Task creation failed after payment', 'error');
+          setLoading(false);
+        }
+      },
 
       modal: {
         ondismiss: function () {
-          showToast('Payment cancelled', 'info');
+          showToast('Payment cancelled. Task not posted.', 'info');
           setLoading(false);
         },
       },
-    });
+    };
 
+    const rzp = new window.Razorpay(options);
     rzp.open();
 
   } catch (err) {
-    showToast(err.message || 'Failed to initiate payment', 'error');
+    showToast(err.message || 'Something went wrong', 'error');
     setLoading(false);
   }
 }
+
 async function getSuggestedPrice() {
   if (!title.trim() || !desc.trim()) {
     showToast('Fill in title and description first', 'error');

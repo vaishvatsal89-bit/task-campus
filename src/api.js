@@ -109,14 +109,40 @@ export async function fetchTaskById(id) {
   return data;
 }
 
-export async function createTask(task) {
-  const { data, error } = await supabase
-    .from('tasks')
-    .insert(task)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
+export async function createRazorpayOrder(amount) {
+  const res = await fetch('/api/create-order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Could not create payment order');
+  }
+  return res.json();
+}
+
+export async function createTaskAfterPayment({
+  razorpay_order_id,
+  razorpay_payment_id,
+  razorpay_signature,
+  taskData,
+}) {
+  const res = await fetch('/api/create-task', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      taskData,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Task creation failed');
+  }
+  return res.json();
 }
 
 export async function fetchMyTasks(userId) {
