@@ -14,7 +14,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchTaskById, acceptTask, verifyOtp, cancelTaskWithRefund, subscribeToTask, submitRating, checkIfRated, reopenTask, doerCancelTask, markOnTheWay} from '../api';
+import { fetchTaskById, acceptTask, verifyOtp, cancelTaskWithRefund, subscribeToTask, submitRating, checkIfRated, reopenTask, doerCancelTask, markOnTheWay,fetchMyOtp} from '../api';
 import { useWindowWidth } from '../hooks/useWindowWidth';
 import ChatBox from '../components/ChatBox';
 import { SkeletonDetail } from '../components/Skeleton';
@@ -31,6 +31,8 @@ export default function TaskDetail({ showToast }) {
   const [rating,  setRating]  = useState(0);
   const [done,    setDone]    = useState(false);
   const [hasRated, setHasRated] = useState(false);
+  const [posterOtp,   setPosterOtp]   = useState(null);
+ const [otpLoading,  setOtpLoading]  = useState(false);
   const isMobile = useWindowWidth() < 640;
   /* Load task on mount */
   useEffect(() => {
@@ -180,7 +182,17 @@ function isOverdue(t) {
   if (t.accepted_at) return Date.now() - new Date(t.accepted_at).getTime() > 24 * 60 * 60 * 1000;
   return false;
 }
-
+  async function loadPosterOtp() {
+  setOtpLoading(true);
+  try {
+    const otp = await fetchMyOtp(id);
+    setPosterOtp(otp);
+  } catch {
+    showToast('Could not load OTP', 'error');
+  } finally {
+    setOtpLoading(false);
+  }
+}
    async function handleOnTheWay() {
   try {
     const result = await markOnTheWay(task.id, user.id);
@@ -366,19 +378,36 @@ async function handleReopen() {
 )}
 
           {/* OTP shown to POSTER (so they can share it with doer) */}
-          {isMyPost && (task.status === 'accepted' || task.status === 'on_the_way') && task.otp_code && (
-            <div style={{ marginTop:24, background:'var(--purple-bg)', border:'1px solid var(--purple-br)', borderRadius:'var(--r2)', padding:20 }}>
-              <div className="section-label">Your OTP — share this with the doer</div>
-              <div style={{ display:'flex', gap:10, justifyContent:'center', marginTop:12 }}>
-                {task.otp_code.split('').map((d,i) => (
-                  <div key={i} style={{ width:54, height:60, borderRadius:12, background:'rgba(139,124,248,.15)', border:'1.5px solid var(--purple)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, fontWeight:700, fontFamily:'var(--mono)', color:'var(--purple2)' }}>
-                    {d}
-                  </div>
-                ))}
-              </div>
-              <p style={{ fontSize:12, color:'var(--text3)', textAlign:'center', marginTop:10 }}>Show this to {task.doer_name} to confirm they've completed the task.</p>
+          {isMyPost && (task.status === 'accepted' || task.status === 'on_the_way') && (
+  <div style={{ marginTop:24, background:'var(--purple-bg)', border:'1px solid var(--purple-br)', borderRadius:'var(--r2)', padding:20 }}>
+    <div className="section-label">Your OTP — share this with the doer</div>
+    <p style={{ fontSize:13, color:'var(--text2)', marginTop:6, marginBottom:14, lineHeight:1.6 }}>
+      Once the doer has completed the task, reveal your OTP and share it with them.
+    </p>
+    {!posterOtp ? (
+      <button
+        className="btn btn-md btn-primary btn-full"
+        onClick={loadPosterOtp}
+        disabled={otpLoading}
+      >
+        {otpLoading ? 'Loading...' : '🔐 Reveal my OTP'}
+      </button>
+    ) : (
+      <>
+        <div style={{ display:'flex', gap:10, justifyContent:'center', marginTop:4 }}>
+          {posterOtp.split('').map((digit, i) => (
+            <div key={i} style={{ width:48, height:56, borderRadius:12, background:'rgba(139,124,248,.15)', border:'1.5px solid var(--purple)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, fontWeight:700, fontFamily:'var(--mono)', color:'var(--purple2)' }}>
+              {digit}
             </div>
-          )}
+          ))}
+        </div>
+        <p style={{ fontSize:12, color:'var(--text3)', textAlign:'center', marginTop:12 }}>
+          Share this code with {task.doer_name} to confirm completion.
+        </p>
+      </>
+    )}
+  </div>
+)}
 
           {/* Rating — shown to BOTH poster and doer after completion */}
 {isLoggedIn && (isMyPost || isMyTask) && task.status === 'completed' && (

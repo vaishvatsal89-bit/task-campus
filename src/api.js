@@ -84,7 +84,7 @@ export async function getProfile(userId) {
   const now = new Date().toISOString();
 
   let query = supabase
-    .from('tasks')
+    .from('tasks_public')
     .select('*')
     .eq('status', 'open')
     .or(`expires_at.is.null,expires_at.gt.${now}`)
@@ -101,7 +101,7 @@ export async function getProfile(userId) {
 
 export async function fetchTaskById(id) {
   const { data, error } = await supabase
-    .from('tasks')
+    .from('tasks_public')
     .select('*')
     .eq('id', id)
     .single();
@@ -122,12 +122,12 @@ export async function createTask(task) {
 export async function fetchMyTasks(userId) {
   const [doingRes, postedRes] = await Promise.all([
     supabase
-      .from('tasks')
+      .from('tasks_public')
       .select('*')
       .eq('doer_id', userId)
       .order('created_at', { ascending: false }),
     supabase
-      .from('tasks')
+      .from('tasks_public')
       .select('*')
       .eq('poster_id', userId)
       .order('created_at', { ascending: false }),
@@ -527,6 +527,12 @@ export async function adminToggleUniversity(adminId, universityId, active) {
     p_university_id: universityId,
     p_active:        active,
   });
+  if (error) throw error;
+  return data;
+}
+export async function fetchMyOtp(taskId) {
+  const { data, error } = await supabase
+    .rpc('get_my_otp', { p_task_id: taskId });
   if (error) throw error;
   return data;
 }
