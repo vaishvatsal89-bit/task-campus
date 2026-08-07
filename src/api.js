@@ -303,14 +303,7 @@ export async function markAllRead(userId) {
     .eq('is_read', false);
   if (error) throw error;
 }
-export async function createRazorpayOrder(amount) {
-  const { data, error } = await supabase.functions.invoke('create-razorpay-order', {
-    body: { amount },
-  });
-  if (error) throw error;
-  if (data.error) throw new Error(data.error);
-  return data; // { order_id, key_id }
-}
+
   export async function updateUpiId(userId, upiId) {
   const { error } = await supabase
     .from('profiles')
