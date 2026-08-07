@@ -152,13 +152,17 @@ export async function acceptTask(taskId, doerId, doerName) {
   return data;
 }
 
-export async function verifyOtp(taskId, otp) {
-  const { data, error } = await supabase.rpc('complete_task_and_credit', {
-    p_task_id: taskId,
-    p_otp:     otp,
-  });
+export async function verifyOtp(taskId, enteredOtp) {
+  const { data, error } = await supabase
+    .rpc('verify_task_otp', {
+      p_task_id:     taskId,
+      p_entered_otp: enteredOtp,
+    });
   if (error) throw error;
   return data;
+  // Returns: { success: true, earn: 120 }
+  // Or:      { success: false, message: 'Wrong OTP. 3 attempts left.' }
+  // Or:      { success: false, message: 'Too many wrong attempts. Contact support.' }
 }
 
 export async function cancelTask(taskId) {

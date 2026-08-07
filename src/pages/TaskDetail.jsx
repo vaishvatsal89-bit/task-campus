@@ -144,11 +144,11 @@ useEffect(() => {
 
   /* OTP entry */
   function otpKey(digit) {
-    if (otp.length >= 4) return;
+    if (otp.length >= 6) return;
     const next = otp + digit;
     setOtp(next);
     setOtpErr(false);
-    if (next.length === 4) {
+    if (next.length === 6) {
       setTimeout(() => checkOtp(next), 200);
     }
   }
@@ -325,7 +325,7 @@ async function handleReopen() {
                 Ask <strong>{task.poster_name}</strong> for the 4-digit code on their screen.
               </p>
               <div className="otp-boxes">
-                {[0,1,2,3].map(i => (
+                {[0,1,2,3,4,5].map(i => (
                   <div key={i} className={`otp-box${otp[i]?' filled':''}${otpErr?' error':''}`}>
                     {otp[i] || ''}
                   </div>
