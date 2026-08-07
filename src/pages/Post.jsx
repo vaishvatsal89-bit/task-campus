@@ -102,7 +102,7 @@ const taskData = {
   file_url:        fileUrl,
   file_name:       fileName,
 };
-
+ try {
 // Step 1 — create Razorpay order on backend
 const order = await createRazorpayOrder(amtNum);
 
@@ -132,6 +132,7 @@ const order = await createRazorpayOrder(amtNum);
           setLoading(false);
         }
       },
+    
 
       modal: {
         ondismiss: function () {
