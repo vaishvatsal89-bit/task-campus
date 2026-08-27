@@ -488,34 +488,14 @@ export async function fetchAdminStats(userId) {
 
 export async function fetchPendingWithdrawals() {
   const { data, error } = await supabase
-    .from('withdrawal_requests')
-    .select('*')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: true });
+    .rpc('admin_get_pending_withdrawals');
   if (error) throw error;
-
-  if (!data || data.length === 0) return [];
-
-  // Fetch profile info separately
-  const userIds = [...new Set(data.map(w => w.user_id))];
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, name, email')
-    .in('id', userIds);
-
-  return data.map(w => ({
-    ...w,
-    profiles: profiles?.find(p => p.id === w.user_id) || null
-  }));
+  return data ?? [];
 }
 
 export async function fetchBannedUsers() {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('id, name, email, warning_count, banned_until')
-    .not('banned_until', 'is', null)
-    .gt('banned_until', new Date().toISOString())
-    .order('banned_until', { ascending: false });
+    .rpc('admin_get_banned_users');
   if (error) throw error;
   return data ?? [];
 }
@@ -572,4 +552,37 @@ export async function fetchMyOtp(taskId) {
     .rpc('get_my_otp', { p_task_id: taskId });
   if (error) throw error;
   return data;
+}
+
+// All admin actions go through SQL functions
+// that check is_admin() server-side
+// If a non-admin calls these, the database rejects them
+
+export async function adminGetAllProfiles() {
+  const { data, error } = await supabase
+    .rpc('admin_get_all_profiles');
+  if (error) throw error;
+  return data;
+}
+
+export async function adminGetAllTasks() {
+  const { data, error } = await supabase
+    .rpc('admin_get_all_tasks');
+  if (error) throw error;
+  return data;
+}
+
+export async function adminCancelTask(taskId) {
+  const { error } = await supabase
+    .rpc('admin_cancel_task', { p_task_id: taskId });
+  if (error) throw error;
+}
+
+export async function adminBanUser(userId, bannedUntil) {
+  const { error } = await supabase
+    .rpc('admin_ban_user', {
+      p_user_id:     userId,
+      p_banned_until: bannedUntil,
+    });
+  if (error) throw error;
 }

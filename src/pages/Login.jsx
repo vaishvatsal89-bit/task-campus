@@ -49,7 +49,7 @@ export default function Login({ showToast }) {
   async function handleSignup(e) {
   e.preventDefault();
   setError('');
-   if (!signupEmail.endsWith('@galgotiasuniversity.edu.in')) {
+   if (!signupEmail.endsWith('@galgotiasuniversity.ac.in')) {
     setError('Only Galgotias University email addresses are allowed');
     return;
   }
