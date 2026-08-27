@@ -49,6 +49,16 @@ export default function Login({ showToast }) {
   async function handleSignup(e) {
   e.preventDefault();
   setError('');
+   if (!signupEmail.endsWith('@galgotiasuniversity.edu.in')) {
+    setError('Only Galgotias University email addresses are allowed');
+    return;
+  }
+
+  if (signupPassword.length < 8) {
+    setError('Password must be at least 8 characters');
+    return;
+  }
+
   if (signupPassword.length < 8) {
     setError('Password must be at least 8 characters');
     return;
@@ -185,21 +195,6 @@ export default function Login({ showToast }) {
                 </div>
 
                 <div className="form-group">
-                <label className="form-label">
-                 Referral code
-                <span style={{ fontSize:11, color:'var(--text3)', fontWeight:400, marginLeft:8 }}>
-                 optional · both get ₹20
-              </span>
-               </label>
-               <input
-               className="inp"
-               placeholder="e.g. TC8X2KM9"
-               value={refCode}
-               onChange={e => setRefCode(e.target.value.toUpperCase().slice(0, 8))}
-               />
-            </div>
-
-                <div className="form-group">
                   <label className="form-label">Password</label>
                   <input
                     className="inp"
@@ -312,6 +307,21 @@ export default function Login({ showToast }) {
                     required
                   />
                 </div>
+
+                <div className="form-group">
+             <label className="form-label">
+                Referral code
+              <span style={{ fontSize:11, color:'var(--text3)', fontWeight:400, marginLeft:8 }}>
+              optional · both get ₹20
+            </span>
+            </label>
+            <input
+             className="inp"
+              placeholder="e.g. TC8X2KM9"
+              value={refCode}
+              onChange={e => setRefCode(e.target.value.toUpperCase().slice(0, 8))}
+              />
+            </div>
 
                 <button
                   className="btn btn-md btn-primary btn-full"
