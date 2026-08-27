@@ -136,7 +136,7 @@ return (
                 <div style={styles.dropdown(200)}>
                   {/* User info */}
                   <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
-                     <div style={{ fontSize: 14, fontWeight: 700 }}>{profile?.name || user?.email?.split('@')[0]}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700 }}>{profile?.name || user?.email?.split('@')[0]}</div>
                     <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{user?.email}</div>
                     <div style={{ fontSize: 11, color: 'var(--amber)', marginTop: 3 }}>⭐ {profile?.rating} rating</div>
                   </div>

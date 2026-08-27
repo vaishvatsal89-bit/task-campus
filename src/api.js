@@ -68,7 +68,17 @@ export async function signOut() {
   if (error) throw error;
 }
 
-export async function getProfile(userId) {
+export async function getPublicProfile(userId) {
+  const { data, error } = await supabase
+    .from('profiles_public')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getMyProfile(userId) {
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -76,6 +86,10 @@ export async function getProfile(userId) {
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function getProfile(userId) {
+  return getMyProfile(userId);
 }
 
 /* ── TASKS ──────────────────────────────────────────────────────────────── */

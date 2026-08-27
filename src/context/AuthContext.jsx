@@ -91,18 +91,41 @@ export function AuthProvider({ children }) {
     },
   };
 
+  if (loading) {
+    return (
+      <div style={{
+        width:'100vw', height:'100vh',
+        background:'#060b14',
+        display:'flex', flexDirection:'column',
+        alignItems:'center', justifyContent:'center',
+        gap:16,
+      }}>
+        <div style={{
+          width:44, height:44,
+          background:'linear-gradient(135deg,#8b7cf8,#a89dff)',
+          borderRadius:12,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          fontSize:22,
+        }}>
+          ⚡
+        </div>
+        <div style={{
+          width:28, height:28,
+          border:'2px solid rgba(255,255,255,0.1)',
+          borderTopColor:'#8b7cf8',
+          borderRadius:'50%',
+          animation:'spin 0.7s linear infinite',
+        }}/>
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider value={value}>
-      {/*
-        Don't render children until we know auth state.
-        Prevents flash of wrong UI (e.g. showing Login
-        button for a split second when user is logged in).
-      */}
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
-
 /*
   useAuth — the hook components use to access auth state.
   Usage in any component:
