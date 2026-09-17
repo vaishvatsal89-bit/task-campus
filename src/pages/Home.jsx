@@ -40,7 +40,7 @@ function CountUp({ to, prefix = '', suffix = '' }) {
 
 export default function Home({ showToast }) {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, isLoggedIn } = useAuth();
   const [tasks,        setTasks]        = useState([]);
   const [activeFilter, setActiveFilter] = useState('All');
   const [loading,      setLoading]      = useState(true);
@@ -157,6 +157,20 @@ export default function Home({ showToast }) {
 
       {/* TASK FEED */}
       <section className="page-wrap" id="feed" style={{animation:'fi .6s ease .4s both'}}>
+        {!isLoggedIn ? (
+  <div style={{textAlign:'center',padding:'60px 20px',display:'flex',flexDirection:'column',alignItems:'center'}}>
+    <div style={{fontSize:40,marginBottom:16,opacity:.5}}>🔒</div>
+    <div style={{fontSize:18,fontWeight:600,marginBottom:8}}>Sign in to see open tasks</div>
+    <div style={{fontSize:14,color:'var(--text2)',marginBottom:24,maxWidth:340,lineHeight:1.65,textAlign:'center'}}>
+      TaskCampus is for verified campus students only. Login to browse tasks near you and start earning.
+    </div>
+    <div style={{display:'flex',gap:12,justifyContent:'center'}}>
+      <button className="btn btn-md btn-primary" onClick={()=>navigate('/login')}>Login</button>
+      <button className="btn btn-md btn-outline" onClick={()=>navigate('/login')}>Sign up — it's free</button>
+    </div>
+  </div>
+) : (
+  <>
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16}}>
           <h2 style={{fontSize:20, fontWeight:600}}>Open tasks near you</h2>
           <span style={S.taskCount}>
@@ -233,6 +247,8 @@ export default function Home({ showToast }) {
             ))}
           </div>
         )}
+          </>
+)}
       </section>
     </>
   );
