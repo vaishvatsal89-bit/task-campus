@@ -370,14 +370,14 @@ export async function verifyAndCreateTask(paymentId, orderId, signature, taskDat
   return data;
 }
 export async function fetchHomeStats() {
-  const [profilesRes, completedRes] = await Promise.all([
-    supabase.from('profiles').select('id', { count: 'exact', head: true }),
-    supabase.from('tasks').select('amount').eq('status', 'completed'),
-  ]);
-  const students      = profilesRes.count || 0;
-  const completedTasks = completedRes.data || [];
-  const totalEarned   = completedTasks.reduce((s, t) => s + Math.round(t.amount * 0.8), 0);
-  return { students, completed: completedTasks.length, totalEarned };
+  const { data, error } = await supabase
+    .rpc('get_public_stats');
+  if (error) throw error;
+  return {
+    students:    data.active_users ?? 0,
+    completed:   data.total_tasks  ?? 0,
+    totalEarned: data.total_paid   ?? 0,
+  };
 }
 export async function sendPasswordReset(email) {
   const { error } = await supabase.auth.resetPasswordForEmail(
