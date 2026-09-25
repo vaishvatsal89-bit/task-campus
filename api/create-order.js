@@ -28,7 +28,11 @@ export default async function handler(req, res) {
       amount:   order.amount,
       currency: order.currency,
     });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
+ } catch (err) {
+  console.error('Razorpay error:', JSON.stringify(err));
+  return res.status(500).json({ 
+    message: err.message,
+    error: err.error || err,
+  });
+}
 }
